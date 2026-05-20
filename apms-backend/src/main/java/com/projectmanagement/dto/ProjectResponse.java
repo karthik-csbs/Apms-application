@@ -1,0 +1,38 @@
+package com.projectmanagement.dto;
+
+import com.projectmanagement.entity.ProjectStatus;
+import com.projectmanagement.entity.ProjectType;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ProjectResponse {
+    private Long id;
+    private String title;
+    private String description;
+    private String technologies;
+    private String duration;
+    private ProjectStatus status;
+    private ProjectType projectType;
+    private String completionStatus;
+    private String departmentName;
+    private String facultyGuideName;
+    private LocalDateTime createdAt;
+    private List<ProjectTeamMemberResponse> teamMembers;
+    
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ProjectTeamMemberResponse {
+        private Long studentId;
+        private String studentName;
+        private String registerNumber;
+        private boolean isTeamLead;
+    }
+}
