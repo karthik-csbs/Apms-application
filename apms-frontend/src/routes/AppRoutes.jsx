@@ -124,7 +124,16 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
+           <Route
+          path="create-students"
+          element={
+            <ProtectedRoute allowedRoles={['FACULTY', 'STUDENT']}>
+              <div>Create Students Page</div>
+            </ProtectedRoute>
+          }
+        />
       </Route>
+      
 
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

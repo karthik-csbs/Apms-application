@@ -50,24 +50,24 @@ const ArrowIcon = () => (
 );
 
 const ROLES = [
-  { id: 'Student',   desc: 'Access your academic records & attendance' },
-  { id: 'Faculty',   desc: 'Manage marks, attendance & class reports' },
-  { id: 'HOD',       desc: 'Department overview & faculty performance' },
-  { id: 'Principal', desc: 'Institution-wide analytics & governance' },
-  { id: 'Admin',     desc: 'System management & user administration' },
+  { id: 'STUDENT', label: 'Student', desc: 'Access your academic records & attendance' },
+  { id: 'FACULTY', label: 'Faculty', desc: 'Manage marks, attendance & class reports' },
+  { id: 'HOD', label: 'HOD', desc: 'Department overview & faculty performance' },
+  { id: 'PRINCIPAL', label: 'Principal', desc: 'Institution-wide analytics & governance' },
+  { id: 'ADMIN', label: 'Admin', desc: 'System management & user administration' },
 ];
 
 const PLACEHOLDERS = {
-  Student:   'student@pec.edu.in',
-  Faculty:   'faculty@pec.edu.in',
+  STUDENT:   'student@pec.edu.in',
+  FACULTY:   'faculty@pec.edu.in',
   HOD:       'hod.dept@pec.edu.in',
-  Principal: 'principal@pec.edu.in',
-  Admin:     'admin@pec.edu.in',
+  PRINCIPAL: 'principal@pec.edu.in',
+  ADMIN:     'admin@pec.edu.in',
 };
 
 const LoginPage = () => {
   const [showPass, setShowPass] = useState(false);
-  const [role, setRole] = useState('Student');
+  const [role, setRole] = useState('STUDENT');
   const [error, setError] = useState('');
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -489,7 +489,7 @@ const LoginPage = () => {
                 className={`pec-role${role === r.id ? ' on' : ''}`}
                 onClick={() => setRole(r.id)}
               >
-                {r.id}
+                {r.label}
               </button>
             ))}
           </div>
@@ -499,7 +499,13 @@ const LoginPage = () => {
             <div className="pec-alert"><span>⚠</span> {error}</div>
           )}
 
-          <form onSubmit={handleSubmit(onSubmit)} noValidate>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSubmit(onSubmit)(e);
+            }}
+            noValidate
+          >
             <div className="pec-field">
               <label className="pec-flbl">Email address</label>
               <div className="pec-iw">

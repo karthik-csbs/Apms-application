@@ -1,6 +1,9 @@
 package com.projectmanagement.service.impl;
 
-import com.projectmanagement.dto.RegisterRequestDto;
+import com.projectmanagement.dto.FacultyRegisterRequestDto;
+import com.projectmanagement.dto.HodRegisterRequestDto;
+import com.projectmanagement.dto.PrincipalRegisterRequestDto;
+import com.projectmanagement.dto.StudentRegisterRequestDto;
 import com.projectmanagement.entity.*;
 import com.projectmanagement.exception.EmailAlreadyExistsException;
 import com.projectmanagement.exception.ResourceNotFoundException;
@@ -22,11 +25,11 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     @Override
     @Transactional
-    public User registerFaculty(RegisterRequestDto request) {
+    public User registerFaculty(FacultyRegisterRequestDto request) {
         validateEmail(request.getEmail());
         
         Faculty faculty = new Faculty();
-        setupBaseUser(faculty, request, Role.FACULTY);
+        setupBaseUser(faculty, request.getName(), request.getEmail(), request.getPassword(), Role.FACULTY);
         faculty.setDesignation(request.getDesignation());
         
         if (request.getDepartmentId() != null) {
@@ -38,33 +41,36 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     @Override
     @Transactional
-    public User registerHod(RegisterRequestDto request) {
+    public User registerHod(HodRegisterRequestDto request) {
         validateEmail(request.getEmail());
         
         User hod = new User();
-        setupBaseUser(hod, request, Role.HOD);
+        setupBaseUser(hod, request.getName(), request.getEmail(), request.getPassword(), Role.HOD);
+        
+        // Note: As previously designed, HOD is currently a base User.
+        // If HOD needed department/designation stored, it would be added to the entity.
         
         return userRepository.save(hod);
     }
 
     @Override
     @Transactional
-    public User registerPrincipal(RegisterRequestDto request) {
+    public User registerPrincipal(PrincipalRegisterRequestDto request) {
         validateEmail(request.getEmail());
         
         User principal = new User();
-        setupBaseUser(principal, request, Role.PRINCIPAL);
+        setupBaseUser(principal, request.getName(), request.getEmail(), request.getPassword(), Role.PRINCIPAL);
         
         return userRepository.save(principal);
     }
 
     @Override
     @Transactional
-    public User registerStudent(RegisterRequestDto request) {
+    public User registerStudent(StudentRegisterRequestDto request) {
         validateEmail(request.getEmail());
         
         Student student = new Student();
-        setupBaseUser(student, request, Role.STUDENT);
+        setupBaseUser(student, request.getName(), request.getEmail(), request.getPassword(), Role.STUDENT);
         student.setRegisterNumber(request.getRegisterNumber());
         
         if (request.getDepartmentId() != null) {
@@ -85,10 +91,10 @@ public class RegistrationServiceImpl implements RegistrationService {
                 .orElseThrow(() -> new ResourceNotFoundException("Department not found with id: " + departmentId));
     }
 
-    private void setupBaseUser(User user, RegisterRequestDto request, Role role) {
-        user.setName(request.getName());
-        user.setEmail(request.getEmail());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
+    private void setupBaseUser(User user, String name, String email, String password, Role role) {
+        user.setName(name);
+        user.setEmail(email);
+        user.setPassword(passwordEncoder.encode(password));
         user.setRole(role);
     }
 }

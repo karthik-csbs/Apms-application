@@ -1,26 +1,107 @@
-import React, { useRef } from 'react';
-import { Box, Typography, Button, Paper, Container } from '@mui/material';
+import React, { useRef, useState, useEffect, useContext } from 'react';
+import { Box, Typography, Button, Paper, Container, CircularProgress, Snackbar, Alert } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { AuthContext } from '../../context/AuthContext';
+import { projectService } from '../../services/projectService';
+import { certificateService } from '../../services/certificateService';
 
 const CertificatePreview = () => {
+  const { user } = useContext(AuthContext);
   const certificateRef = useRef(null);
+  const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState(false);
+  const [projectId, setProjectId] = useState(null);
+  const [alert, setAlert] = useState({ show: false, message: '', severity: 'success' });
 
-  // Dummy Data
-  const data = {
-    studentName: 'John Doe',
+  // Certificate Data State
+  const [data, setData] = useState({
+    studentName: user?.name || 'John Doe',
     registerNumber: 'CS2026001',
     department: 'Computer Science & Engineering',
     projectTitle: 'AI based Disease Prediction System',
     projectType: 'Main Project',
     facultyName: 'Dr. Alan Smith',
     academicYear: '2025-2026',
-    completionDate: 'May 15, 2026',
-    collegeName: 'PEC College of Engineering',
+    completionDate: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+    collegeName: 'Prathyusha Engineering College',
+  });
+
+  useEffect(() => {
+    fetchCertificateDetails();
+  }, []);
+
+  const fetchCertificateDetails = async () => {
+    try {
+      setLoading(true);
+      const projectData = await projectService.getAll({ size: 100 });
+      const projectList = projectData?.data?.content || projectData?.content || [];
+      
+      // Find a project that has the logged-in student as a team member
+      const studentProject = projectList.find(p => 
+        p.teamMembers?.some(m => m.studentName === user?.name || m.id === user?.id)
+      );
+
+      if (studentProject) {
+        setProjectId(studentProject.id);
+        
+        // Find user's team member registration number
+        const myMemberInfo = studentProject.teamMembers?.find(m => m.studentName === user?.name || m.id === user?.id);
+        const regNum = myMemberInfo?.registerNumber || 'CS2026001';
+
+        // Format project type enum (e.g. MAIN_PROJECT -> Main Project)
+        const formatProjectType = (type) => {
+          if (!type) return 'Main Project';
+          return type.replace(/_/g, ' ')
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(' ');
+        };
+
+        // Determine academic year from createdAt or current year
+        const getAcademicYear = (dateStr) => {
+          const date = dateStr ? new Date(dateStr) : new Date();
+          const year = date.getFullYear();
+          const month = date.getMonth(); // 0-indexed
+          if (month >= 5) {
+            return `${year}-${year + 1}`;
+          } else {
+            return `${year - 1}-${year}`;
+          }
+        };
+
+        setData({
+          studentName: user?.name || 'John Doe',
+          registerNumber: regNum,
+          department: studentProject.departmentName || 'Computer Science & Engineering',
+          projectTitle: studentProject.title,
+          projectType: formatProjectType(studentProject.projectType),
+          facultyName: studentProject.facultyGuideName || 'Dr. Alan Smith',
+          academicYear: getAcademicYear(studentProject.createdAt),
+          completionDate: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+          collegeName: 'Prathyusha Engineering College',
+        });
+      } else {
+        setAlert({
+          show: true,
+          message: 'No completed project found on server. Showing demo certificate.',
+          severity: 'info'
+        });
+      }
+    } catch (err) {
+      console.error('Failed to load certificate details', err);
+      setAlert({
+        show: true,
+        message: 'Could not fetch project details from server. Displaying offline demo.',
+        severity: 'warning'
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDownload = async () => {
+  const generateClientSidePDF = async () => {
     const input = certificateRef.current;
     
     try {
@@ -42,10 +123,65 @@ const CertificatePreview = () => {
       
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
       pdf.save(`${data.studentName}_Certificate.pdf`);
+      
+      setAlert({
+        show: true,
+        message: 'Certificate PDF generated and downloaded successfully!',
+        severity: 'success'
+      });
     } catch (error) {
       console.error('Error generating PDF', error);
+      setAlert({
+        show: true,
+        message: 'Failed to generate PDF. Please try again.',
+        severity: 'error'
+      });
     }
   };
+
+  const handleDownload = async () => {
+    if (!projectId) {
+      await generateClientSidePDF();
+      return;
+    }
+    
+    try {
+      setDownloading(true);
+      const pdfBlob = await certificateService.download(projectId);
+      
+      const url = window.URL.createObjectURL(new Blob([pdfBlob], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${data.studentName}_Certificate.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      
+      setAlert({
+        show: true,
+        message: 'Official certificate downloaded successfully from server!',
+        severity: 'success'
+      });
+    } catch (error) {
+      console.warn('Backend PDF download failed, falling back to client-side generation:', error);
+      setAlert({
+        show: true,
+        message: 'Offline mode: Generating high-quality PDF in-browser...',
+        severity: 'info'
+      });
+      await generateClientSidePDF();
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+        <CircularProgress color="primary" />
+      </Box>
+    );
+  }
 
   return (
     <Container maxWidth="lg">
@@ -54,10 +190,11 @@ const CertificatePreview = () => {
         <Button 
           variant="contained" 
           color="primary" 
-          startIcon={<DownloadIcon />} 
+          startIcon={downloading ? <CircularProgress size={20} color="inherit" /> : <DownloadIcon />} 
           onClick={handleDownload}
+          disabled={downloading}
         >
-          Download PDF
+          {downloading ? 'Downloading...' : 'Download PDF'}
         </Button>
       </Box>
 
@@ -120,6 +257,17 @@ const CertificatePreview = () => {
 
         </Paper>
       </Box>
+
+      <Snackbar 
+        open={alert.show} 
+        autoHideDuration={6000} 
+        onClose={() => setAlert({ ...alert, show: false })}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert onClose={() => setAlert({ ...alert, show: false })} severity={alert.severity} sx={{ width: '100%' }}>
+          {alert.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };

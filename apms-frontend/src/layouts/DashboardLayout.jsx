@@ -34,7 +34,9 @@ const getMenuItems = (role) => {
   const common = [{ text: 'Dashboard', icon: 'dashboard', path: '/dashboard' }];
   switch (role) {
     case 'ADMIN':
-      return [...common, { text: 'Faculty Management', icon: 'people', path: '/faculty' }];
+      return [...common, { text: 'User Management', icon: 'people', path: '/faculty' },
+
+      ];
     case 'HOD':
       return [...common, { text: 'Department Faculty', icon: 'people', path: '/department/faculty' }];
     case 'PRINCIPAL':
@@ -46,6 +48,7 @@ const getMenuItems = (role) => {
         { text: 'My Students',  icon: 'student',     path: '/students'     },
         { text: 'Submissions',  icon: 'submissions', path: '/submissions'  },
         { text: 'Meetings',     icon: 'meeting',     path: '/meetings'     },
+        { text: 'Create Students',     icon: 'people',     path: '/create-students'     },
       ];
     case 'STUDENT':
       return [

@@ -28,6 +28,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
+      setLoading(true);
       const data = await authService.login(credentials);
       
       const { accessToken, refreshToken, user: userData } = data;
@@ -43,27 +44,74 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Login error:', error);
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
   const logout = async () => {
     try {
+      setLoading(true);
       await authService.logout();
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
       setUser(null);
       setIsAuthenticated(false);
+      setLoading(false);
     }
   };
 
+  const refreshAccessToken = async () => {
+    try {
+      const data = await authService.refreshAccessToken();
+      const { user: userData } = data;
+      sessionStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
+      setIsAuthenticated(true);
+      return data;
+    } catch (error) {
+      console.error('Token refresh failed inside context:', error);
+      setUser(null);
+      setIsAuthenticated(false);
+      localStorage.clear();
+      sessionStorage.clear();
+      throw error;
+    }
+  };
+
+  const contextValue = {
+    user,
+    currentUser: user,
+    userRole: user?.role || null,
+    isAuthenticated,
+    loading,
+    login,
+    logout,
+    refreshAccessToken
+  };
+
   if (loading) {
-    // We will replace this with a proper Loader component later
-    return <div>Loading authentication...</div>;
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        fontFamily: 'DM Sans, sans-serif',
+        background: '#faf8f5',
+        color: '#8b1a1a'
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <h2 style={{ fontWeight: 500, marginBottom: '8px' }}>APMS Portal</h2>
+          <div style={{ color: '#aaa', fontSize: '14px' }}>Verifying authentication session...</div>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, logout, loading }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

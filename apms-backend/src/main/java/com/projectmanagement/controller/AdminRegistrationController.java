@@ -1,7 +1,9 @@
 package com.projectmanagement.controller;
 
 import com.projectmanagement.dto.ApiResponse;
-import com.projectmanagement.dto.RegisterRequestDto;
+import com.projectmanagement.dto.FacultyRegisterRequestDto;
+import com.projectmanagement.dto.HodRegisterRequestDto;
+import com.projectmanagement.dto.PrincipalRegisterRequestDto;
 import com.projectmanagement.service.RegistrationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,21 +24,21 @@ public class AdminRegistrationController {
 
     @PostMapping("/faculty")
     @Operation(summary = "Register a new Faculty")
-    public ResponseEntity<ApiResponse<Void>> registerFaculty(@Valid @RequestBody RegisterRequestDto request) {
+    public ResponseEntity<ApiResponse<Void>> registerFaculty(@Valid @RequestBody FacultyRegisterRequestDto request) {
         registrationService.registerFaculty(request);
         return ResponseEntity.ok(new ApiResponse<>(true, "Faculty registered successfully", null));
     }
 
     @PostMapping("/hod")
     @Operation(summary = "Register a new HOD")
-    public ResponseEntity<ApiResponse<Void>> registerHod(@Valid @RequestBody RegisterRequestDto request) {
+    public ResponseEntity<ApiResponse<Void>> registerHod(@Valid @RequestBody HodRegisterRequestDto request) {
         registrationService.registerHod(request);
         return ResponseEntity.ok(new ApiResponse<>(true, "HOD registered successfully", null));
     }
 
     @PostMapping("/principal")
     @Operation(summary = "Register a new Principal")
-    public ResponseEntity<ApiResponse<Void>> registerPrincipal(@Valid @RequestBody RegisterRequestDto request) {
+    public ResponseEntity<ApiResponse<Void>> registerPrincipal(@Valid @RequestBody PrincipalRegisterRequestDto request) {
         registrationService.registerPrincipal(request);
         return ResponseEntity.ok(new ApiResponse<>(true, "Principal registered successfully", null));
     }
