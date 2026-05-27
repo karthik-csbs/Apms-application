@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Grid, Paper, Typography, Box, Button, CircularProgress, Snackbar, Alert } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DataTable from '../../components/DataTable';
 import { facultyService } from '../../services/facultyService';
+import { AuthContext } from '../../context/AuthContext';
 
 const FacultyDashboard = () => {
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
   const [showError, setShowError] = useState(false);
@@ -18,8 +20,10 @@ const FacultyDashboard = () => {
   const [projects, setProjects] = useState([]);
 
   useEffect(() => {
-    fetchFacultyData();
-  }, []);
+    if (user) {
+      fetchFacultyData();
+    }
+  }, [user]);
 
   const fetchFacultyData = async () => {
     try {
@@ -29,24 +33,27 @@ const FacultyDashboard = () => {
         facultyService.getStudents()
       ]);
 
-      const projectList = projectsRes.status === 'fulfilled'
+      const isProjectsRejected = projectsRes.status === 'rejected';
+      const isStudentsRejected = studentsRes.status === 'rejected';
+
+      const projectList = !isProjectsRejected
         ? (projectsRes.value?.data || projectsRes.value || [])
         : [];
 
-      const studentList = studentsRes.status === 'fulfilled'
+      const studentList = !isStudentsRejected
         ? (studentsRes.value?.data || studentsRes.value || [])
         : [];
 
       // Calculate stats
-      const assignedStudents = studentList.length || 32;
+      const assignedStudents = isStudentsRejected ? 32 : studentList.length;
       const pendingApprovals = projectList.filter(p => p.completionStatus === 'PENDING_APPROVAL').length;
       const completedProjects = projectList.filter(p => p.status === 'COMPLETED').length;
 
       // Map rows for DataTable
       const rows = projectList.map(p => {
-        const leadMember = p.teamMembers?.find(m => m.teamLead);
+        const leadMember = p.teamMembers?.find(m => m.role === 'TEAM_LEAD' || m.isTeamLead || m.teamLead);
         const firstMember = p.teamMembers?.[0];
-        const studentName = leadMember?.studentName || firstMember?.studentName || 'John Doe';
+        const studentName = leadMember?.studentName || firstMember?.studentName || 'Student Team';
         
         return {
           id: p.id,
@@ -58,38 +65,34 @@ const FacultyDashboard = () => {
         };
       });
 
-      setProjects(rows.length > 0 ? rows : [
-        { id: 1, title: 'AI based Disease Prediction', student: 'John Doe', type: 'Main', status: 'In Progress' },
-        { id: 2, title: 'E-commerce App', student: 'Jane Smith', type: 'Mini', status: 'Completed' },
-        { id: 3, title: 'Smart Home IoT', student: 'Bob Wilson', type: 'Main', status: 'Pending Review' },
-      ]);
+      if (isProjectsRejected) {
+        setErrorMsg(projectsRes.reason?.response?.data?.message || projectsRes.reason?.message || 'Failed to fetch projects.');
+        setShowError(true);
+        setProjects([]);
+      } else {
+        setProjects(rows);
+      }
 
       setStats({
         assignedStudents,
-        pendingApprovals: pendingApprovals || 5, // fallback if empty
-        completedProjects: completedProjects || 12
+        pendingApprovals,
+        completedProjects
       });
 
-      if (projectsRes.status === 'rejected' || studentsRes.status === 'rejected') {
-        setErrorMsg('Loaded dashboard with partial backend connectivity.');
+      if (isStudentsRejected) {
+        setErrorMsg(studentsRes.reason?.response?.data?.message || studentsRes.reason?.message || 'Failed to fetch students.');
         setShowError(true);
       }
     } catch (err) {
       console.error('Failed to load faculty dashboard data', err);
-      setErrorMsg('Failed to connect to backend APIs. Using offline state.');
+      setErrorMsg(err.response?.data?.message || err.message || 'Failed to connect to backend APIs.');
       setShowError(true);
-
-      // Offline defaults
       setStats({
-        assignedStudents: 32,
-        pendingApprovals: 5,
-        completedProjects: 12
+        assignedStudents: 0,
+        pendingApprovals: 0,
+        completedProjects: 0
       });
-      setProjects([
-        { id: 1, title: 'AI based Disease Prediction', student: 'John Doe', type: 'Main', status: 'In Progress' },
-        { id: 2, title: 'E-commerce App', student: 'Jane Smith', type: 'Mini', status: 'Completed' },
-        { id: 3, title: 'Smart Home IoT', student: 'Bob Wilson', type: 'Main', status: 'Pending Review' },
-      ]);
+      setProjects([]);
     } finally {
       setLoading(false);
     }

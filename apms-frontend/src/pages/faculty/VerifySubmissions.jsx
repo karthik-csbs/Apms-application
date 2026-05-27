@@ -30,7 +30,7 @@ const VerifySubmissions = () => {
       const pendingProjects = projectList.filter(p => p.completionStatus === 'PENDING_APPROVAL');
       
       const rows = pendingProjects.map(p => {
-        const leadMember = p.teamMembers?.find(m => m.teamLead);
+        const leadMember = p.teamMembers?.find(m => m.role === 'TEAM_LEAD' || m.isTeamLead || m.teamLead);
         const firstMember = p.teamMembers?.[0];
         const studentName = leadMember?.studentName || firstMember?.studentName || 'Student Team';
         
@@ -44,16 +44,10 @@ const VerifySubmissions = () => {
         };
       });
 
-      setSubmissions(rows.length > 0 ? rows : [
-        { id: 1, projectTitle: 'AI based Disease Prediction', studentName: 'John Doe', githubLink: '#', driveLink: '#', status: 'Pending Review' },
-        { id: 2, projectTitle: 'Smart Home IoT', studentName: 'Bob Wilson', githubLink: '#', driveLink: '#', status: 'Pending Review' },
-      ]);
+      setSubmissions(rows);
     } catch (err) {
       console.error('Failed to load pending submissions', err);
-      setSubmissions([
-        { id: 1, projectTitle: 'AI based Disease Prediction', studentName: 'John Doe', githubLink: '#', driveLink: '#', status: 'Pending Review' },
-        { id: 2, projectTitle: 'Smart Home IoT', studentName: 'Bob Wilson', githubLink: '#', driveLink: '#', status: 'Pending Review' },
-      ]);
+      setSubmissions([]);
     } finally {
       setLoading(false);
     }

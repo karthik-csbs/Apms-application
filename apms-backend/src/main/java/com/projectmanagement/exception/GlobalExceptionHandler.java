@@ -45,6 +45,21 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(new ApiResponse<>(false, "Validation failed", errors), HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(jakarta.persistence.EntityNotFoundException.class)
+    public ResponseEntity<ApiResponse<Object>> handleEntityNotFound(jakarta.persistence.EntityNotFoundException ex) {
+        return new ResponseEntity<>(new ApiResponse<>(false, ex.getMessage(), null), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<ApiResponse<Object>> handleAccessDenied(org.springframework.security.access.AccessDeniedException ex) {
+        return new ResponseEntity<>(new ApiResponse<>(false, "Access denied: " + ex.getMessage(), null), HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ApiResponse<Object>> handleRuntimeException(RuntimeException ex) {
+        return new ResponseEntity<>(new ApiResponse<>(false, "Runtime error: " + ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleGlobalException(Exception ex) {
         return new ResponseEntity<>(new ApiResponse<>(false, "An error occurred: " + ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);

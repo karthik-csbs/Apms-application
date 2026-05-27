@@ -4,10 +4,10 @@ import { AuthContext } from '../context/AuthContext';
 import Loader from '../components/Loader';
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
-  const { user, isAuthenticated, loading } = useContext(AuthContext);
+  const { user, isAuthenticated, authLoading } = useContext(AuthContext);
   const location = useLocation();
 
-  if (loading) {
+  if (authLoading) {
     return <Loader message="Verifying access..." />;
   }
 

@@ -1,8 +1,8 @@
-import axiosInstance from '../api/axios';
+import api from './api';
 
 export const hodService = {
   getFaculty: async () => {
-    const response = await axiosInstance.get('/hod/faculty');
+    const response = await api.get('/hod/faculty');
     return response.data;
   }
 };

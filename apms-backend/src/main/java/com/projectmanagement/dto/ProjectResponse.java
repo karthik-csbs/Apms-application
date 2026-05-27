@@ -16,11 +16,14 @@ public class ProjectResponse {
     private Long id;
     private String title;
     private String description;
-    private String technologies;
+    private List<String> technologies;
     private String duration;
     private ProjectStatus status;
     private ProjectType projectType;
     private String completionStatus;
+    private String githubUrl;
+    private String driveUrl;
+    private String documentUrl;
     private String departmentName;
     private String facultyGuideName;
     private LocalDateTime createdAt;
@@ -34,5 +37,7 @@ public class ProjectResponse {
         private String studentName;
         private String registerNumber;
         private boolean isTeamLead;
+        private String role;
+        private String contribution;
     }
 }

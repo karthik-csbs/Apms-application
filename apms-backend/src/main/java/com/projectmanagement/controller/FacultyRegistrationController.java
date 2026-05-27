@@ -2,6 +2,7 @@ package com.projectmanagement.controller;
 
 import com.projectmanagement.dto.ApiResponse;
 import com.projectmanagement.dto.StudentRegisterRequestDto;
+import com.projectmanagement.entity.User;
 import com.projectmanagement.service.RegistrationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,8 +23,10 @@ public class FacultyRegistrationController {
 
     @PostMapping("/student")
     @Operation(summary = "Register a new Student")
-    public ResponseEntity<ApiResponse<Void>> registerStudent(@Valid @RequestBody StudentRegisterRequestDto request) {
-        registrationService.registerStudent(request);
-        return ResponseEntity.ok(new ApiResponse<>(true, "Student registered successfully", null));
+    public ResponseEntity<ApiResponse<User>> registerStudent(
+            @Valid @RequestBody StudentRegisterRequestDto request,
+            @org.springframework.security.core.annotation.AuthenticationPrincipal User user) {
+        User registered = registrationService.registerStudent(request, user);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Student registered successfully", registered));
     }
 }

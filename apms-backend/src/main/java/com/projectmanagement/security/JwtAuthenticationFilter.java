@@ -31,6 +31,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getRequestURI();
+        return path.startsWith("/api/auth/");
+    }
+
+    @Override
     protected void doFilterInternal(
             HttpServletRequest request,
             HttpServletResponse response,
@@ -38,41 +44,47 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         try {
-
             String jwt = parseJwt(request);
 
             if (jwt != null) {
+                try {
+                    String username = jwtUtil.extractUsername(jwt);
 
-                String username = jwtUtil.extractUsername(jwt);
+                    if (username != null &&
+                            SecurityContextHolder.getContext()
+                                    .getAuthentication() == null) {
 
-                if (username != null &&
-                        SecurityContextHolder.getContext()
-                                .getAuthentication() == null) {
+                        UserDetails userDetails =
+                                userDetailsService
+                                        .loadUserByUsername(username);
 
-                    UserDetails userDetails =
-                            userDetailsService
-                                    .loadUserByUsername(username);
+                        if (jwtUtil.validateToken(jwt, userDetails)) {
+                            UsernamePasswordAuthenticationToken authentication =
+                                    new UsernamePasswordAuthenticationToken(
+                                            userDetails,
+                                            null,
+                                            userDetails.getAuthorities());
 
-                    if (jwtUtil.validateToken(jwt, userDetails)) {
+                            authentication.setDetails(
+                                    new WebAuthenticationDetailsSource()
+                                            .buildDetails(request));
 
-                        UsernamePasswordAuthenticationToken authentication =
-                                new UsernamePasswordAuthenticationToken(
-                                        userDetails,
-                                        null,
-                                        userDetails.getAuthorities());
-
-                        authentication.setDetails(
-                                new WebAuthenticationDetailsSource()
-                                        .buildDetails(request));
-
-                        SecurityContextHolder.getContext()
-                                .setAuthentication(authentication);
+                            SecurityContextHolder.getContext()
+                                    .setAuthentication(authentication);
+                            
+                            logger.info("JWT Validation: User " + username + " authenticated successfully.");
+                        } else {
+                            logger.warn("JWT Validation: Token is invalid or expired for user: " + username);
+                        }
                     }
+                } catch (io.jsonwebtoken.ExpiredJwtException e) {
+                    logger.warn("JWT Validation: Token has expired: " + e.getMessage());
+                } catch (Exception e) {
+                    logger.error("JWT Validation failed: " + e.getMessage());
                 }
             }
 
         } catch (Exception e) {
-
             logger.error("Cannot set user authentication: {}", e);
         }
 
@@ -80,13 +92,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private String parseJwt(HttpServletRequest request) {
-
-        String headerAuth =
-                request.getHeader("Authorization");
+        String headerAuth = request.getHeader("Authorization");
 
         if (StringUtils.hasText(headerAuth)
                 && headerAuth.startsWith("Bearer ")) {
-
             return headerAuth.substring(7);
         }
 

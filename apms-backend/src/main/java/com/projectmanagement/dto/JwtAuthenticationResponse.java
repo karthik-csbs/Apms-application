@@ -13,4 +13,5 @@ public class JwtAuthenticationResponse {
     private String role;
     private String name;
     private String email;
+    private Long id;
 }

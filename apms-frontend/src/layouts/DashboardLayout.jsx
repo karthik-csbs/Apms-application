@@ -1,6 +1,8 @@
 import React, { useState, useContext, useRef, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { notificationService } from '../services/notificationService';
+import NotificationDropdown from '../components/NotificationDropdown';
 
 /* ─── SVG Icons ─── */
 const Icon = ({ d, size = 18 }) => (
@@ -75,6 +77,11 @@ const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef(null);
+  
+  // Notification states
+  const [notifications, setNotifications] = useState([]);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const notifRef = useRef(null);
 
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -83,6 +90,39 @@ const DashboardLayout = () => {
   const menuItems = getMenuItems(user?.role);
   const activeItem = menuItems.find(item => location.pathname.startsWith(item.path));
   const initials = user?.name ? user.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : 'U';
+  const unreadCount = notifications.filter(n => !n.readStatus).length;
+
+  const fetchNotifications = async () => {
+    if (user?.role === 'STUDENT') {
+      try {
+        const res = await notificationService.getAll();
+        setNotifications(res?.data || res || []);
+      } catch (err) {
+        console.error('Failed to load notifications in layout', err);
+      }
+    }
+  };
+
+  const handleMarkAsRead = async (id, e) => {
+    e.stopPropagation();
+    try {
+      await notificationService.markAsRead(id);
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, readStatus: true } : n));
+    } catch (err) {
+      console.error('Failed to mark read', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+    let interval;
+    if (user?.role === 'STUDENT') {
+      interval = setInterval(fetchNotifications, 30000); // poll every 30s
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [user]);
 
   const handleLogout = async () => {
     setProfileOpen(false);
@@ -94,6 +134,9 @@ const DashboardLayout = () => {
     const handler = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target)) {
         setProfileOpen(false);
+      }
+      if (notifRef.current && !notifRef.current.contains(e.target)) {
+        setNotifOpen(false);
       }
     };
     document.addEventListener('mousedown', handler);
@@ -371,6 +414,23 @@ const DashboardLayout = () => {
           border: 1.5px solid #fff;
         }
 
+        .dl-notif-badge {
+          position: absolute;
+          top: -4px; right: -4px;
+          background: #8b1a1a;
+          color: #fff;
+          font-size: 9px;
+          font-weight: 600;
+          height: 16px;
+          min-width: 16px;
+          padding: 0 4px;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 1.5px solid #fff;
+        }
+
         /* Profile dropdown */
         .dl-profile-wrap {
           position: relative;
@@ -596,9 +656,23 @@ const DashboardLayout = () => {
 
             <div className="dl-topbar-right">
               {/* Notification */}
-              <div className="dl-notif-btn" title="Notifications">
-                <NavIcon name="bell" />
-                <div className="dl-notif-dot" />
+              <div className="dl-notif-wrap" ref={notifRef} style={{ position: 'relative' }}>
+                <button 
+                  className="dl-notif-btn" 
+                  title="Notifications"
+                  onClick={() => setNotifOpen(prev => !prev)}
+                  style={{ border: 'none', background: '#faf8f5', cursor: 'pointer', outline: 'none' }}
+                >
+                  <NavIcon name="bell" />
+                  {unreadCount > 0 && <div className="dl-notif-badge">{unreadCount}</div>}
+                </button>
+
+                {notifOpen && (
+                  <NotificationDropdown 
+                    notifications={notifications} 
+                    onMarkAsRead={handleMarkAsRead} 
+                  />
+                )}
               </div>
 
               {/* Profile */}

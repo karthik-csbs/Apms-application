@@ -22,6 +22,7 @@ public class RegistrationServiceImpl implements RegistrationService {
     private final UserRepository userRepository;
     private final DepartmentRepository departmentRepository;
     private final PasswordEncoder passwordEncoder;
+    private final com.projectmanagement.repository.FacultyRepository facultyRepository;
 
     @Override
     @Transactional
@@ -66,7 +67,7 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     @Override
     @Transactional
-    public User registerStudent(StudentRegisterRequestDto request) {
+    public User registerStudent(StudentRegisterRequestDto request, User creator) {
         validateEmail(request.getEmail());
         
         Student student = new Student();
@@ -75,6 +76,15 @@ public class RegistrationServiceImpl implements RegistrationService {
         
         if (request.getDepartmentId() != null) {
             student.setDepartment(getDepartment(request.getDepartmentId()));
+        }
+
+        if (creator != null) {
+            if (creator instanceof Faculty) {
+                student.setFaculty((Faculty) creator);
+            } else {
+                Faculty faculty = facultyRepository.findById(creator.getId()).orElse(null);
+                student.setFaculty(faculty);
+            }
         }
 
         return userRepository.save(student);

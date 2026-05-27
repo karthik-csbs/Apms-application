@@ -10,5 +10,5 @@ public interface RegistrationService {
     User registerFaculty(FacultyRegisterRequestDto request);
     User registerHod(HodRegisterRequestDto request);
     User registerPrincipal(PrincipalRegisterRequestDto request);
-    User registerStudent(StudentRegisterRequestDto request);
+    User registerStudent(StudentRegisterRequestDto request, User creator);
 }

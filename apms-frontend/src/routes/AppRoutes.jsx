@@ -8,6 +8,8 @@ import { AuthContext } from '../context/AuthContext';
 import LoginPage from '../pages/auth/LoginPage';
 import UnauthorizedPage from '../pages/auth/UnauthorizedPage';
 import NotFoundPage from '../pages/auth/NotFoundPage';
+import ProfilePage from '../pages/auth/ProfilePage';
+
 
 // Dashboards
 import AdminDashboard from '../pages/dashboard/AdminDashboard';
@@ -20,6 +22,7 @@ import ProjectList from '../pages/projects/ProjectList';
 import SubmissionForm from '../pages/student/SubmissionForm';
 import VerifySubmissions from '../pages/faculty/VerifySubmissions';
 import CertificatePreview from '../pages/certificates/CertificatePreview';
+import CreateStudents from '../pages/student/createstudent';
 
 const AppRoutes = () => {
   return (
@@ -117,6 +120,14 @@ const AppRoutes = () => {
 
         {/* Common Routes */}
         <Route
+          path="profile"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN', 'HOD', 'PRINCIPAL', 'FACULTY', 'STUDENT']}>
+              <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="meetings"
           element={
             <ProtectedRoute allowedRoles={['FACULTY', 'STUDENT']}>
@@ -128,7 +139,7 @@ const AppRoutes = () => {
           path="create-students"
           element={
             <ProtectedRoute allowedRoles={['FACULTY', 'STUDENT']}>
-              <div>Create Students Page</div>
+              <CreateStudents/>
             </ProtectedRoute>
           }
         />

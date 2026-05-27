@@ -10,14 +10,11 @@ import java.util.List;
 
 @Data
 public class ProjectCreateRequest {
-    @NotBlank(message = "Title is required")
     private String title;
 
-    @NotBlank(message = "Description is required")
     private String description;
 
-    @NotBlank(message = "Technologies are required")
-    private String technologies;
+    private List<String> technologies;
 
     @NotBlank(message = "Duration is required")
     private String duration;

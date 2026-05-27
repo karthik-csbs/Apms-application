@@ -35,8 +35,8 @@ const CertificatePreview = () => {
   const fetchCertificateDetails = async () => {
     try {
       setLoading(true);
-      const projectData = await projectService.getAll({ size: 100 });
-      const projectList = projectData?.data?.content || projectData?.content || [];
+      const projectData = await projectService.getStudentProjects();
+      const projectList = projectData?.data || projectData || [];
       
       // Find a project that has the logged-in student as a team member
       const studentProject = projectList.find(p => 

@@ -1,12 +1,12 @@
 package com.projectmanagement.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "students")
@@ -19,5 +19,24 @@ public class Student extends User {
 
     @ManyToOne
     @JoinColumn(name = "department_id")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Department department;
+
+    private String mobile;
+
+    @Column(columnDefinition = "TEXT")
+    private String skills;
+
+    private String githubProfile;
+
+    private String linkedinUrl;
+
+    private String resumeUrl;
+
+    @ManyToOne
+    @JoinColumn(name = "faculty_id")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Faculty faculty;
 }

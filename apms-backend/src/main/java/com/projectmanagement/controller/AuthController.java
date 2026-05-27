@@ -28,66 +28,125 @@ public class AuthController {
     private final RefreshTokenService refreshTokenService;
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<JwtAuthenticationResponse>> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<ApiResponse<JwtAuthenticationResponse>> authenticateUser(
+            @Valid @RequestBody LoginRequest loginRequest
+    ) {
 
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+        Authentication authentication;
+
+        try {
+
+            authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            loginRequest.getEmail(),
+                            loginRequest.getPassword()
+                    )
+            );
+
+        } catch (Exception e) {
+            throw new UnauthorizedException("Invalid email or password");
+        }
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        User userDetails = (User) authentication.getPrincipal();
+        User user = (User) authentication.getPrincipal();
 
-        // Check if role matches the requested role in UI
-        if (userDetails.getRole() != loginRequest.getRole()) {
-            throw new UnauthorizedException("You do not have the role required to login through this portal.");
+        // Validate role
+        if (user.getRole() != loginRequest.getRole()) {
+
+            throw new UnauthorizedException(
+                    "You do not have access to this portal"
+            );
         }
 
-        String jwt = jwtUtil.generateToken(userDetails);
-        
-        // Delete any existing refresh token for this user, then create a new one
-        refreshTokenService.deleteByUserId(userDetails.getId());
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
+        // Generate JWT
+        String accessToken = jwtUtil.generateToken(user);
 
-        JwtAuthenticationResponse response = new JwtAuthenticationResponse(
-                jwt,
-                refreshToken.getToken(),
-                userDetails.getRole().name(),
-                userDetails.getName(),
-                userDetails.getEmail()
+        // Delete old refresh token
+        refreshTokenService.deleteByUserId(user.getId());
+
+        // Create new refresh token
+        RefreshToken refreshToken =
+                refreshTokenService.createRefreshToken(user.getId());
+
+        JwtAuthenticationResponse response =
+                new JwtAuthenticationResponse(
+                        accessToken,
+                        refreshToken.getToken(),
+                        user.getRole().name(),
+                        user.getName(),
+                        user.getEmail(),
+                        user.getId()
+                );
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        true,
+                        "Login successful",
+                        response
+                )
         );
-
-        return ResponseEntity.ok(new ApiResponse<>(true, "Login successful", response));
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse<JwtAuthenticationResponse>> refreshtoken(@Valid @RequestBody TokenRefreshRequest request) {
+    public ResponseEntity<ApiResponse<JwtAuthenticationResponse>> refreshToken(
+            @Valid @RequestBody TokenRefreshRequest request
+    ) {
+
         String requestRefreshToken = request.getRefreshToken();
 
         return refreshTokenService.findByToken(requestRefreshToken)
                 .map(refreshTokenService::verifyExpiration)
                 .map(RefreshToken::getUser)
                 .map(user -> {
+
                     String token = jwtUtil.generateToken(user);
-                    JwtAuthenticationResponse response = new JwtAuthenticationResponse(
-                            token,
-                            requestRefreshToken,
-                            user.getRole().name(),
-                            user.getName(),
-                            user.getEmail()
+
+                    JwtAuthenticationResponse response =
+                            new JwtAuthenticationResponse(
+                                    token,
+                                    requestRefreshToken,
+                                    user.getRole().name(),
+                                    user.getName(),
+                                    user.getEmail(),
+                                    user.getId()
+                            );
+
+                    return ResponseEntity.ok(
+                            new ApiResponse<>(
+                                    true,
+                                    "Token refreshed successfully",
+                                    response
+                            )
                     );
-                    return ResponseEntity.ok(new ApiResponse<>(true, "Token refreshed successfully", response));
                 })
-                .orElseThrow(() -> new UnauthorizedException("Refresh token is not in database!"));
+                .orElseThrow(() ->
+                        new UnauthorizedException(
+                                "Refresh token is invalid"
+                        )
+                );
     }
 
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<String>> logoutUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof User) {
-            User userDetails = (User) authentication.getPrincipal();
-            refreshTokenService.deleteByUserId(userDetails.getId());
+
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication != null
+                && authentication.getPrincipal() instanceof User user) {
+
+            refreshTokenService.deleteByUserId(user.getId());
         }
+
         SecurityContextHolder.clearContext();
-        return ResponseEntity.ok(new ApiResponse<>(true, "Log out successful", null));
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        true,
+                        "Logout successful",
+                        null
+                )
+        );
     }
 }

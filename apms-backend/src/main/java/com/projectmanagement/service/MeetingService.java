@@ -22,39 +22,54 @@ public class MeetingService {
 
     @Transactional
     public Meeting requestMeeting(Long projectId, Long studentId, String agenda) {
+
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
+
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
 
         Meeting meeting = new Meeting();
         meeting.setProject(project);
-        meeting.setFaculty(project.getFacultyGuide());
+        meeting.setFaculty((Faculty) project.getFacultyGuide());
         meeting.setStudent(student);
         meeting.setAgenda(agenda);
         meeting.setStatus(MeetingStatus.REQUESTED);
 
         meeting = meetingRepository.save(meeting);
 
-        notificationService.sendNotification(project.getFacultyGuide(), 
-            "New Meeting Request", 
-            "Student " + student.getName() + " has requested a meeting for project: " + project.getTitle());
+        // Notification to Student
+        notificationService.sendNotification(
+                student,
+                project,
+                "Meeting Request Sent",
+                "Your meeting request has been sent to faculty for project: "
+                        + project.getTitle()
+        );
 
         return meeting;
     }
 
     @Transactional
     public Meeting scheduleMeeting(Long meetingId, LocalDateTime scheduledTime) {
+
         Meeting meeting = meetingRepository.findById(meetingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Meeting not found"));
-        
+
         meeting.setScheduledAt(scheduledTime);
         meeting.setStatus(MeetingStatus.SCHEDULED);
+
         meeting = meetingRepository.save(meeting);
 
-        notificationService.sendNotification(meeting.getStudent(),
-            "Meeting Scheduled",
-            "Your meeting request for project " + meeting.getProject().getTitle() + " has been scheduled at " + scheduledTime);
+        notificationService.sendNotification(
+                meeting.getStudent(),
+                meeting.getProject(),
+                "Meeting Scheduled",
+                "Your meeting for project "
+                        + meeting.getProject().getTitle()
+                        + " has been scheduled at "
+                        + scheduledTime
+        );
 
         return meeting;
     }
