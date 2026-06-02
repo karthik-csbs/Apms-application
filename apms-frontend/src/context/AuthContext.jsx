@@ -6,26 +6,73 @@ export const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [authLoading, setAuthLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Check for existing session on mount
-    const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
-    const userData = sessionStorage.getItem('user') || localStorage.getItem('user');
+    let mounted = true;
 
-    if (token && userData) {
+    const initAuth = async () => {
+      setAuthLoading(true);
+
       try {
-        setUser(JSON.parse(userData));
-        setIsAuthenticated(true);
-      } catch (error) {
-        console.error('Failed to parse user data from session storage', error);
+        const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+        const userDataStr = localStorage.getItem('user') || sessionStorage.getItem('user');
+
+        if (token) {
+          if (userDataStr) {
+            try {
+              const parsed = JSON.parse(userDataStr);
+              if (mounted) {
+                setUser(parsed);
+                setIsAuthenticated(true);
+              }
+            } catch (e) {
+              console.error('Failed to parse stored user, attempting token refresh', e);
+              // try to refresh token and get user
+              try {
+                const data = await authService.refreshAccessToken();
+                if (mounted && data?.user) {
+                  setUser(data.user);
+                  setIsAuthenticated(true);
+                }
+              } catch (err) {
+                localStorage.clear();
+                sessionStorage.clear();
+              }
+            }
+          } else {
+            // No user in storage, try to refresh and obtain user
+            try {
+              const data = await authService.refreshAccessToken();
+              if (mounted && data?.user) {
+                setUser(data.user);
+                setIsAuthenticated(true);
+              }
+            } catch (err) {
+              localStorage.clear();
+              sessionStorage.clear();
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Auth initialization failed', err);
         localStorage.clear();
         sessionStorage.clear();
+        if (mounted) {
+          setUser(null);
+          setIsAuthenticated(false);
+        }
+      } finally {
+        if (mounted) setAuthLoading(false);
       }
-    }
-    setLoading(false);
-    setAuthLoading(false);
+    };
+
+    initAuth();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const login = async (credentials) => {
@@ -101,7 +148,7 @@ export const AuthProvider = ({ children }) => {
     currentUser: user,
     userRole: user?.role || null,
     isAuthenticated,
-    loading: authLoading,
+    loading,
     authLoading,
     login,
     logout,

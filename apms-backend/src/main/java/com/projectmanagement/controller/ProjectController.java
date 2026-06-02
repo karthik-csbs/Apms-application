@@ -36,7 +36,7 @@ public class ProjectController {
             @Valid @RequestBody ProjectCreateRequestDto request,
             @AuthenticationPrincipal User user) {
 
-        Faculty facultyGuide = facultyRepository.findById(user.getId())
+        Faculty facultyGuide = facultyRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new RuntimeException("Faculty not found"));
 
         ProjectResponse createdProject = projectService.createProject(request, facultyGuide);

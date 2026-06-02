@@ -82,7 +82,7 @@ public class RegistrationServiceImpl implements RegistrationService {
             if (creator instanceof Faculty) {
                 student.setFaculty((Faculty) creator);
             } else {
-                Faculty faculty = facultyRepository.findById(creator.getId()).orElse(null);
+                Faculty faculty = facultyRepository.findByUserId(creator.getId()).orElse(null);
                 student.setFaculty(faculty);
             }
         }

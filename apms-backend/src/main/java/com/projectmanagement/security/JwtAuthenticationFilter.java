@@ -43,12 +43,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain)
             throws ServletException, IOException {
 
+        String path = request.getRequestURI();
+        String headerAuth = request.getHeader("Authorization");
+        logger.info("Incoming request to path: " + path + " | Auth Header: " + (headerAuth != null ? "Present" : "None"));
+
         try {
             String jwt = parseJwt(request);
 
             if (jwt != null) {
+                logger.info("Extracted JWT Token: " + jwt.substring(0, Math.min(jwt.length(), 15)) + "...");
                 try {
                     String username = jwtUtil.extractUsername(jwt);
+                    logger.info("Extracted Username/Email from Token: " + username);
 
                     if (username != null &&
                             SecurityContextHolder.getContext()
@@ -57,6 +63,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         UserDetails userDetails =
                                 userDetailsService
                                         .loadUserByUsername(username);
+                        logger.info("Loaded UserDetails for: " + username + " with authorities: " + userDetails.getAuthorities());
 
                         if (jwtUtil.validateToken(jwt, userDetails)) {
                             UsernamePasswordAuthenticationToken authentication =
@@ -72,20 +79,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             SecurityContextHolder.getContext()
                                     .setAuthentication(authentication);
                             
-                            logger.info("JWT Validation: User " + username + " authenticated successfully.");
+                            logger.info("JWT Validation: User " + username + " authenticated successfully. SecurityContext updated.");
                         } else {
-                            logger.warn("JWT Validation: Token is invalid or expired for user: " + username);
+                            logger.warn("JWT Validation: Token validation returned false for user: " + username);
                         }
+                    } else if (username != null) {
+                        logger.info("SecurityContext already has authentication: " + SecurityContextHolder.getContext().getAuthentication().getName());
                     }
                 } catch (io.jsonwebtoken.ExpiredJwtException e) {
                     logger.warn("JWT Validation: Token has expired: " + e.getMessage());
                 } catch (Exception e) {
-                    logger.error("JWT Validation failed: " + e.getMessage());
+                    logger.error("JWT Validation failed with exception: " + e.getMessage(), e);
                 }
+            } else {
+                logger.info("No Bearer token found in request headers.");
             }
 
         } catch (Exception e) {
-            logger.error("Cannot set user authentication: {}", e);
+            logger.error("Cannot set user authentication: ", e);
         }
 
         filterChain.doFilter(request, response);

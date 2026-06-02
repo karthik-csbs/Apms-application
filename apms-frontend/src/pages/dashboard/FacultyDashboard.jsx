@@ -8,7 +8,7 @@ import { AuthContext } from '../../context/AuthContext';
 
 const FacultyDashboard = () => {
   const navigate = useNavigate();
-  const { user } = useContext(AuthContext);
+  const { user, authLoading } = useContext(AuthContext);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
   const [showError, setShowError] = useState(false);
@@ -20,10 +20,10 @@ const FacultyDashboard = () => {
   const [projects, setProjects] = useState([]);
 
   useEffect(() => {
-    if (user) {
+    if (user && !authLoading) {
       fetchFacultyData();
     }
-  }, [user]);
+  }, [user, authLoading]);
 
   const fetchFacultyData = async () => {
     try {
@@ -37,11 +37,11 @@ const FacultyDashboard = () => {
       const isStudentsRejected = studentsRes.status === 'rejected';
 
       const projectList = !isProjectsRejected
-        ? (projectsRes.value?.data || projectsRes.value || [])
+        ? (projectsRes.value || [])
         : [];
 
       const studentList = !isStudentsRejected
-        ? (studentsRes.value?.data || studentsRes.value || [])
+        ? (studentsRes.value || [])
         : [];
 
       // Calculate stats

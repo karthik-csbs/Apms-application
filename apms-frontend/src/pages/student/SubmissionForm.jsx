@@ -63,7 +63,7 @@ const SubmissionForm = () => {
       if (!targetId) {
         // Fallback: fetch student projects, select first
         const studentProjects = await projectService.getStudentProjects();
-        const projList = studentProjects?.data || studentProjects || [];
+        const projList = studentProjects || [];
         if (projList.length > 0) {
           targetId = projList[0].id;
         }
@@ -82,8 +82,7 @@ const SubmissionForm = () => {
       setProjectId(targetId);
 
       // Load specific project details
-      const projectRes = await projectService.getById(targetId);
-      const proj = projectRes?.data || projectRes;
+      const proj = await projectService.getById(targetId);
       setProjectDetails(proj);
 
       // Determine user's role in this project
@@ -124,11 +123,11 @@ const SubmissionForm = () => {
       if (user?.role === 'STUDENT') {
         try {
           const profileRes = await studentService.getProfile();
-          if (profileRes?.success && profileRes?.data) {
-            setProfileMobile(profileRes.data.mobile || '');
-            setProfileRegNum(profileRes.data.registerNumber || '');
-            setProfileResumeUrl(profileRes.data.resumeUrl || '');
-            setProfileName(profileRes.data.name || user.name || '');
+          if (profileRes) {
+            setProfileMobile(profileRes.mobile || '');
+            setProfileRegNum(profileRes.registerNumber || '');
+            setProfileResumeUrl(profileRes.resumeUrl || '');
+            setProfileName(profileRes.name || user.name || '');
           }
         } catch (profileErr) {
           console.error('Failed to load student profile details', profileErr);
@@ -228,8 +227,7 @@ const SubmissionForm = () => {
         technologies: techList
       };
 
-      const updatedRes = await projectService.updateTeamLead(projectId, payload);
-      const updated = updatedRes?.data || updatedRes;
+      const updated = await projectService.updateTeamLead(projectId, payload);
       setProjectDetails(updated);
       setAlert({ show: true, message: 'Project details updated successfully!', severity: 'success' });
       setIsEditingDetails(false);

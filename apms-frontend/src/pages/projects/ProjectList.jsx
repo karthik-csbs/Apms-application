@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { 
   Box, Typography, Button, Paper, TextField, InputAdornment, 
   CircularProgress, Snackbar, Alert, Dialog, DialogTitle, 
@@ -14,7 +14,7 @@ import { studentService } from '../../services/studentService';
 import { AuthContext } from '../../context/AuthContext';
 
 const ProjectList = () => {
-  const { user } = useContext(AuthContext);
+  const { user, authLoading } = useContext(AuthContext);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState([]);
@@ -36,59 +36,57 @@ const ProjectList = () => {
   const [teamLeadId, setTeamLeadId] = useState('');
 
   const [alert, setAlert] = useState({ show: false, message: '', severity: 'success' });
-  const fetchedRef = useRef(false);
 
   useEffect(() => {
-    if (!user || fetchedRef.current) return;
-    fetchedRef.current = true;
+    if (!user || authLoading) return;
+
     fetchData();
-  }, [user]);
-
-  const handleApiError = (err) => {
-    if (!err.response) {
-      setAlert({ show: true, message: "Backend server is not running", severity: "error" });
-      return;
-    }
-
-    switch (err.response.status) {
-      case 401:
-        setAlert({ show: true, message: "Session expired. Please login again.", severity: "error" });
-        break;
-      case 403:
-        setAlert({ show: true, message: "Access denied.", severity: "error" });
-        break;
-      case 500:
-        setAlert({ show: true, message: "Internal server error.", severity: "error" });
-        break;
-      default:
-        setAlert({ show: true, message: "Something went wrong.", severity: "error" });
-    }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, authLoading]);
 
   const fetchData = async () => {
     try {
-      if (projects.length === 0) {
-        setLoading(true);
-      }
-      
-      const [projectRes, studentRes] = await Promise.all([
-        projectService.getFacultyProjects(),
-        studentService.getAll()
-      ]);
+      setLoading(true);
 
-      const projList = projectRes?.data || projectRes || [];
-      const studList = studentRes?.data || studentRes || [];
-
-      if (Array.isArray(projList)) {
-        setProjects(projList);
+      // Load Faculty Projects with one retry
+      let projRes;
+      try {
+        projRes = await projectService.getFacultyProjects();
+      } catch (firstErr) {
+        console.warn('First attempt to fetch projects failed, retrying once', firstErr);
+        projRes = await projectService.getFacultyProjects();
       }
 
-      if (Array.isArray(studList)) {
-        setStudents(studList);
+      if (projRes && Array.isArray(projRes)) {
+        setProjects(projRes);
+      }
+
+      // Load all students for the dropdown selection with one retry
+      let studentRes;
+      try {
+        studentRes = await studentService.getAll();
+      } catch (firstErr) {
+        console.warn('First attempt to fetch students failed, retrying once', firstErr);
+        studentRes = await studentService.getAll();
+      }
+
+      if (studentRes && Array.isArray(studentRes)) {
+        setStudents(studentRes);
       }
 
     } catch (err) {
-      handleApiError(err);
+      console.error('Failed to load projects list or students list', err);
+      const status = err?.response?.status;
+      let message = 'Server error occurred.';
+      if (!err?.response) message = 'Backend server is not running.';
+      else if (status === 401) message = 'Session expired. Please login again.';
+      else if (status === 403) message = 'You do not have permission.';
+
+      setAlert({
+        show: true,
+        message,
+        severity: 'warning'
+      });
     } finally {
       setLoading(false);
     }

@@ -111,6 +111,26 @@ public class SecurityConfig {
                                 "/api/faculty/**"
                         ).hasRole("FACULTY")
 
+                        // HOD APIs
+                        .requestMatchers(
+                                "/api/hod/**"
+                        ).hasRole("HOD")
+
+                        // Admin APIs
+                        .requestMatchers(
+                                "/api/admin/**"
+                        ).hasRole("ADMIN")
+
+                        // Principal APIs
+                        .requestMatchers(
+                                "/api/principal/**"
+                        ).hasRole("PRINCIPAL")
+
+                        // Student APIs
+                        .requestMatchers(
+                                "/api/student/**"
+                        ).hasRole("STUDENT")
+
                         // Projects Team-Lead APIs
                         .requestMatchers(
                                 "/api/projects/team-lead/**"

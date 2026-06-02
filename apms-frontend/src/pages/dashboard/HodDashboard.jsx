@@ -35,11 +35,11 @@ const HodDashboard = () => {
       ]);
 
       const projectList = projectsResponse.status === 'fulfilled' 
-        ? (projectsResponse.value?.data?.content || projectsResponse.value?.content || []) 
+        ? (projectsResponse.value?.content || projectsResponse.value || []) 
         : [];
       
       const facultyList = facultyResponse.status === 'fulfilled'
-        ? (facultyResponse.value?.data || facultyResponse.value || [])
+        ? (facultyResponse.value || [])
         : [];
 
       // Filter data for HOD's department (if user department name is present)

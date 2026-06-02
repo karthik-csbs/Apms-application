@@ -24,7 +24,7 @@ const VerifySubmissions = () => {
     try {
       setLoading(true);
       const projectData = await facultyService.getProjects();
-      const projectList = projectData?.data || projectData || [];
+      const projectList = projectData || [];
       
       // Filter for projects pending completion approval
       const pendingProjects = projectList.filter(p => p.completionStatus === 'PENDING_APPROVAL');

@@ -10,7 +10,6 @@ import UnauthorizedPage from '../pages/auth/UnauthorizedPage';
 import NotFoundPage from '../pages/auth/NotFoundPage';
 import ProfilePage from '../pages/auth/ProfilePage';
 
-
 // Dashboards
 import AdminDashboard from '../pages/dashboard/AdminDashboard';
 import HodDashboard from '../pages/dashboard/HodDashboard';
@@ -23,6 +22,13 @@ import SubmissionForm from '../pages/student/SubmissionForm';
 import VerifySubmissions from '../pages/faculty/VerifySubmissions';
 import CertificatePreview from '../pages/certificates/CertificatePreview';
 import CreateStudents from '../pages/student/createstudent';
+
+// Newly Implemented Pages
+import AdminUserManagement from '../pages/admin/AdminUserManagement';
+import HodFacultyPage from '../pages/hod/HodFacultyPage';
+import PrincipalAnalyticsPage from '../pages/principal/PrincipalAnalyticsPage';
+import FacultyStudentsPage from '../pages/faculty/FacultyStudentsPage';
+import MeetingsPage from '../pages/meetings/MeetingsPage';
 
 const AppRoutes = () => {
   return (
@@ -49,7 +55,7 @@ const AppRoutes = () => {
           path="faculty"
           element={
             <ProtectedRoute allowedRoles={['ADMIN']}>
-              <div>Admin Faculty Management Page</div>
+              <AdminUserManagement />
             </ProtectedRoute>
           }
         />
@@ -59,7 +65,7 @@ const AppRoutes = () => {
           path="department/faculty"
           element={
             <ProtectedRoute allowedRoles={['HOD']}>
-              <div>HOD Department Faculty Page</div>
+              <HodFacultyPage />
             </ProtectedRoute>
           }
         />
@@ -69,7 +75,7 @@ const AppRoutes = () => {
           path="analytics"
           element={
             <ProtectedRoute allowedRoles={['PRINCIPAL']}>
-              <div>Principal Analytics Page</div>
+              <PrincipalAnalyticsPage />
             </ProtectedRoute>
           }
         />
@@ -87,7 +93,7 @@ const AppRoutes = () => {
           path="students"
           element={
             <ProtectedRoute allowedRoles={['FACULTY']}>
-              <div>Faculty Students Page</div>
+              <FacultyStudentsPage />
             </ProtectedRoute>
           }
         />
@@ -131,11 +137,11 @@ const AppRoutes = () => {
           path="meetings"
           element={
             <ProtectedRoute allowedRoles={['FACULTY', 'STUDENT']}>
-              <div>Meetings Page</div>
+              <MeetingsPage />
             </ProtectedRoute>
           }
         />
-           <Route
+        <Route
           path="create-students"
           element={
             <ProtectedRoute allowedRoles={['FACULTY', 'STUDENT']}>
@@ -158,7 +164,7 @@ const DashboardRouter = () => {
   switch (user?.role) {
     case 'ADMIN': return <AdminDashboard />;
     case 'HOD': return <HodDashboard />;
-    case 'PRINCIPAL': return <div>Principal Dashboard</div>;
+    case 'PRINCIPAL': return <PrincipalAnalyticsPage />;
     case 'FACULTY': return <FacultyDashboard />;
     case 'STUDENT': return <StudentDashboard />;
     default: return <Navigate to="/login" replace />;

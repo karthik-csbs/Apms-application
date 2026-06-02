@@ -83,7 +83,7 @@ const DashboardLayout = () => {
   const [notifOpen, setNotifOpen] = useState(false);
   const notifRef = useRef(null);
 
-  const { user, logout } = useContext(AuthContext);
+  const { user, logout, authLoading } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -96,7 +96,7 @@ const DashboardLayout = () => {
     if (user?.role === 'STUDENT') {
       try {
         const res = await notificationService.getAll();
-        setNotifications(res?.data || res || []);
+        setNotifications(res || []);
       } catch (err) {
         console.error('Failed to load notifications in layout', err);
       }
@@ -114,6 +114,7 @@ const DashboardLayout = () => {
   };
 
   useEffect(() => {
+    if (!user || authLoading) return;
     fetchNotifications();
     let interval;
     if (user?.role === 'STUDENT') {
@@ -122,7 +123,7 @@ const DashboardLayout = () => {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [user]);
+  }, [user, authLoading]);
 
   const handleLogout = async () => {
     setProfileOpen(false);
