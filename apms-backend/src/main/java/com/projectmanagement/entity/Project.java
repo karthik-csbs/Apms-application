@@ -84,6 +84,12 @@ public class Project {
     @EqualsAndHashCode.Exclude
     private List<ProjectTeam> teamMembers = new ArrayList<>();
 
+    @OneToOne(mappedBy = "project", cascade = CascadeType.ALL)
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties("project")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Workflow workflow;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

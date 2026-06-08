@@ -28,6 +28,9 @@ public class ProjectResponse {
     private String facultyGuideName;
     private LocalDateTime createdAt;
     private List<ProjectTeamMemberResponse> teamMembers;
+    private Integer currentStage;
+    private String workflowStatus;
+    private String currentStageStatus;
     
     @Data
     @NoArgsConstructor

@@ -18,7 +18,7 @@ import StudentDashboard from '../pages/dashboard/StudentDashboard';
 
 // Projects & Certificates
 import ProjectList from '../pages/projects/ProjectList';
-import SubmissionForm from '../pages/student/SubmissionForm';
+import MyProject from '../pages/student/MyProject';
 import VerifySubmissions from '../pages/faculty/VerifySubmissions';
 import CertificatePreview from '../pages/certificates/CertificatePreview';
 import CreateStudents from '../pages/student/createstudent';
@@ -110,8 +110,8 @@ const AppRoutes = () => {
         <Route
           path="my-project"
           element={
-            <ProtectedRoute allowedRoles={['STUDENT']}>
-              <SubmissionForm />
+            <ProtectedRoute allowedRoles={['STUDENT', 'FACULTY', 'HOD', 'PRINCIPAL']}>
+              <MyProject />
             </ProtectedRoute>
           }
         />

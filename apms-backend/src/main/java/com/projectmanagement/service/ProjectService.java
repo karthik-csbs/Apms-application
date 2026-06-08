@@ -10,6 +10,7 @@ import com.projectmanagement.exception.ResourceNotFoundException;
 import com.projectmanagement.repository.ProjectRepository;
 import com.projectmanagement.repository.ProjectTeamRepository;
 import com.projectmanagement.repository.StudentRepository;
+import com.projectmanagement.repository.WorkflowStageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +28,8 @@ public class ProjectService {
     private final StudentRepository studentRepository;
     private final NotificationService notificationService;
     private final ProjectTeamRepository projectTeamRepository;
+    private final WorkflowService workflowService;
+    private final WorkflowStageRepository workflowStageRepository;
 
     @Transactional
     public ProjectResponse createProject(ProjectCreateRequestDto request, Faculty facultyGuide) {
@@ -106,6 +109,9 @@ public class ProjectService {
                 System.err.println("[DEBUG APMS] Failed to send notification: " + e.getMessage());
             }
         }
+
+        // Create workflow automatically
+        workflowService.createWorkflow(project);
 
         return mapToResponse(project);
     }
@@ -352,6 +358,22 @@ public class ProjectService {
                     .collect(Collectors.toList())
                 : java.util.Collections.emptyList();
 
+        Integer currentStage = null;
+        String workflowStatus = null;
+        String currentStageStatus = null;
+
+        if (project.getWorkflow() != null) {
+            Workflow w = project.getWorkflow();
+            currentStage = w.getCurrentStage();
+            workflowStatus = w.getWorkflowStatus() != null ? w.getWorkflowStatus().name() : null;
+            if (currentStage != null) {
+                var stageOpt = workflowStageRepository.findByWorkflowIdAndStageNumber(w.getId(), currentStage);
+                if (stageOpt.isPresent()) {
+                    currentStageStatus = stageOpt.get().getStageStatus() != null ? stageOpt.get().getStageStatus().name() : null;
+                }
+            }
+        }
+
         return new ProjectResponse(
                 project.getId(),
                 project.getTitle(),
@@ -367,7 +389,10 @@ public class ProjectService {
                 project.getDepartment() != null ? project.getDepartment().getName() : null,
                 project.getFacultyGuide() != null ? project.getFacultyGuide().getName() : null,
                 project.getCreatedAt(),
-                teamMembers
+                teamMembers,
+                currentStage,
+                workflowStatus,
+                currentStageStatus
         );
     }
 }
