@@ -29,6 +29,7 @@ import HodFacultyPage from '../pages/hod/HodFacultyPage';
 import PrincipalAnalyticsPage from '../pages/principal/PrincipalAnalyticsPage';
 import FacultyStudentsPage from '../pages/faculty/FacultyStudentsPage';
 import MeetingsPage from '../pages/meetings/MeetingsPage';
+import ReportsPage from '../pages/reports/ReportsPage';
 
 const AppRoutes = () => {
   return (
@@ -125,6 +126,14 @@ const AppRoutes = () => {
         />
 
         {/* Common Routes */}
+        <Route
+          path="reports"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN', 'HOD', 'PRINCIPAL', 'FACULTY']}>
+              <ReportsPage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="profile"
           element={

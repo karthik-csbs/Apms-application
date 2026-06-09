@@ -3,6 +3,7 @@ import { Box, Typography, Button, Paper, Chip, Dialog, DialogTitle, DialogConten
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import DataTable from '../../components/DataTable';
+import ExportButton from '../../components/ExportButton';
 import { projectService } from '../../services/projectService';
 import { facultyService } from '../../services/facultyService';
 
@@ -116,7 +117,10 @@ const VerifySubmissions = () => {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom sx={{ fontWeight: 500 }}>Verify Submissions</Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mb: 2, flexWrap: 'wrap' }}>
+        <Typography variant="h4" sx={{ fontWeight: 500 }}>Verify Submissions</Typography>
+        <ExportButton reportType="submission" disabled={loading} />
+      </Box>
       
       <Paper sx={{ p: 3 }}>
         {loading ? (

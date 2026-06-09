@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Grid, Paper, Typography, Box, CircularProgress, Card, CardContent, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
+import { Grid, Paper, Typography, Box, CircularProgress, Card, CardContent, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Stack } from '@mui/material';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import ExportButton from '../../components/ExportButton';
 import api from '../../services/api';
 
 const COLORS = ['#8b1a1a', '#d4a017', '#2e7d32', '#1976d2', '#9c27b0'];
@@ -76,7 +77,12 @@ const PrincipalAnalyticsPage = () => {
 
   return (
     <Box>
-      <Typography variant="h4" sx={{ fontWeight: 500, mb: 3, color: '#1a0a0a' }}>College Analytics Dashboard</Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mb: 3, flexWrap: 'wrap' }}>
+        <Typography variant="h4" sx={{ fontWeight: 500, color: '#1a0a0a' }}>College Analytics Dashboard</Typography>
+        <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', rowGap: 1 }}>
+          <ExportButton reportType="review" disabled={loading} />
+        </Stack>
+      </Box>
 
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>

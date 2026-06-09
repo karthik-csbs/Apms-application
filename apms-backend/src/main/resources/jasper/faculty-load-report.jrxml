@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="faculty-load-report" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="c112df38-f9a8-4228-8547-062e7311d4de">
+	<parameter name="InstitutionTitle" class="java.lang.String"/>
+	<parameter name="ReportTitle" class="java.lang.String"/>
+	<parameter name="GeneratedTimestamp" class="java.lang.String"/>
+	<field name="facultyId" class="java.lang.Long"/>
+	<field name="facultyName" class="java.lang.String"/>
+	<field name="department" class="java.lang.String"/>
+	<field name="assignedProjects" class="java.lang.Long"/>
+	<field name="completedProjects" class="java.lang.Long"/>
+	<field name="pendingReviews" class="java.lang.Long"/>
+	<field name="activeReviews" class="java.lang.Long"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="79" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="0" width="802" height="30" uuid="e622b13c-bf57-4148-8df0-d12c9bf4f9d4"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="18" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{InstitutionTitle}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="30" width="802" height="25" uuid="cc79e605-df45-42d4-ba09-bd245781a7ff"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{ReportTitle}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="55" width="802" height="20" uuid="45a27cc9-66c3-4d67-93cf-619bf1f62c66"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="10" isItalic="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Generated: " + $P{GeneratedTimestamp}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<columnHeader>
+		<band height="30" splitType="Stretch">
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="0" width="80" height="30" backcolor="#E0E0E0" uuid="192a2a07-85b9-47fe-bbba-c3359d9c57d9"/>
+				<box><pen lineWidth="0.5"/></box>
+				<textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement>
+				<text><![CDATA[Faculty ID]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="80" y="0" width="180" height="30" backcolor="#E0E0E0" uuid="888c3a1b-e522-4aef-bbdf-a3b1031d2343"/>
+				<box><pen lineWidth="0.5"/></box>
+				<textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement>
+				<text><![CDATA[Faculty Name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="260" y="0" width="180" height="30" backcolor="#E0E0E0" uuid="c24a2507-6bb9-4cfc-bba1-bc0159d7b4dc"/>
+				<box><pen lineWidth="0.5"/></box>
+				<textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement>
+				<text><![CDATA[Department]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="440" y="0" width="90" height="30" backcolor="#E0E0E0" uuid="cf822e18-68e5-424a-9ef8-0e36923a1fb3"/>
+				<box><pen lineWidth="0.5"/></box>
+				<textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement>
+				<text><![CDATA[Assigned Projects]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="530" y="0" width="90" height="30" backcolor="#E0E0E0" uuid="071a938c-ce4a-4467-9c98-1e4df2ad3329"/>
+				<box><pen lineWidth="0.5"/></box>
+				<textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement>
+				<text><![CDATA[Completed Projects]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="620" y="0" width="90" height="30" backcolor="#E0E0E0" uuid="1c841a07-85b9-47fe-bbba-c3359d9c57d9"/>
+				<box><pen lineWidth="0.5"/></box>
+				<textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement>
+				<text><![CDATA[Pending Reviews]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="710" y="0" width="92" height="30" backcolor="#E0E0E0" uuid="888c3a1b-e522-4aef-bbdf-a3b1031d234d"/>
+				<box><pen lineWidth="0.5"/></box>
+				<textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement>
+				<text><![CDATA[Active Reviews]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="80" height="20" uuid="45b17cc9-66c3-4d67-93cf-619bf1f62c66"/>
+				<box><pen lineWidth="0.5"/></box>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{facultyId}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="80" y="0" width="180" height="20" uuid="45c17cc9-66c3-4d67-93cf-619bf1f62c66"/>
+				<box><pen lineWidth="0.5"/></box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{facultyName}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="260" y="0" width="180" height="20" uuid="45d17cc9-66c3-4d67-93cf-619bf1f62c66"/>
+				<box><pen lineWidth="0.5"/></box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{department}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="440" y="0" width="90" height="20" uuid="45e17cc9-66c3-4d67-93cf-619bf1f62c66"/>
+				<box><pen lineWidth="0.5"/></box>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{assignedProjects}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="530" y="0" width="90" height="20" uuid="45f17cc9-66c3-4d67-93cf-619bf1f62c66"/>
+				<box><pen lineWidth="0.5"/></box>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{completedProjects}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="620" y="0" width="90" height="20" uuid="45017cc9-66c3-4d67-93cf-619bf1f62c66"/>
+				<box><pen lineWidth="0.5"/></box>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{pendingReviews}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="710" y="0" width="92" height="20" uuid="45117cc9-66c3-4d67-93cf-619bf1f62c66"/>
+				<box><pen lineWidth="0.5"/></box>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{activeReviews}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="30" splitType="Stretch">
+			<textField>
+				<reportElement x="680" y="0" width="122" height="30" uuid="ffc17cc9-66c3-4d67-93cf-619bf1f62c66"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA["Page " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

@@ -135,7 +135,12 @@ const FacultyDashboard = () => {
 
       <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={12} sm={4}>
-          <Paper sx={{ p: 3, textAlign: 'center', borderTop: '4px solid #1976d2' }}>
+          <Paper sx={{
+            p: 3, textAlign: 'center', borderLeft: '5px solid #1976d2',
+            boxShadow: '0 4px 20px 0 rgba(0,0,0,0.05)',
+            transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+            '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 8px 30px 0 rgba(0,0,0,0.08)' }
+          }}>
             <Typography variant="h6" color="text.secondary">Assigned Students</Typography>
             {loading ? (
               <CircularProgress size={24} sx={{ mt: 1 }} />
@@ -145,7 +150,12 @@ const FacultyDashboard = () => {
           </Paper>
         </Grid>
         <Grid item xs={12} sm={4}>
-          <Paper sx={{ p: 3, textAlign: 'center', borderTop: '4px solid #ff9800' }}>
+          <Paper sx={{
+            p: 3, textAlign: 'center', borderLeft: '5px solid #ff9800',
+            boxShadow: '0 4px 20px 0 rgba(0,0,0,0.05)',
+            transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+            '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 8px 30px 0 rgba(0,0,0,0.08)' }
+          }}>
             <Typography variant="h6" color="text.secondary">Pending Approvals</Typography>
             {loading ? (
               <CircularProgress size={24} sx={{ mt: 1 }} />
@@ -155,7 +165,12 @@ const FacultyDashboard = () => {
           </Paper>
         </Grid>
         <Grid item xs={12} sm={4}>
-          <Paper sx={{ p: 3, textAlign: 'center', borderTop: '4px solid #4caf50' }}>
+          <Paper sx={{
+            p: 3, textAlign: 'center', borderLeft: '5px solid #4caf50',
+            boxShadow: '0 4px 20px 0 rgba(0,0,0,0.05)',
+            transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+            '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 8px 30px 0 rgba(0,0,0,0.08)' }
+          }}>
             <Typography variant="h6" color="text.secondary">Completed Projects</Typography>
             {loading ? (
               <CircularProgress size={24} sx={{ mt: 1 }} />

@@ -12,10 +12,10 @@ import java.util.List;
 public interface ProjectRepository extends JpaRepository<Project, Long> {
     List<Project> findByFacultyGuideId(Long facultyId);
 
-    @Query("SELECT p FROM Project p JOIN p.assignedStudents s WHERE s.id = :studentId")
+    @Query("SELECT DISTINCT p FROM Project p LEFT JOIN FETCH p.department LEFT JOIN FETCH p.facultyGuide LEFT JOIN FETCH p.teamLead JOIN p.assignedStudents s WHERE s.id = :studentId")
     List<Project> findProjectsByStudentId(@Param("studentId") Long studentId);
 
-    @Query("SELECT p FROM Project p WHERE p.facultyGuide.id = :facultyId")
+    @Query("SELECT DISTINCT p FROM Project p LEFT JOIN FETCH p.department LEFT JOIN FETCH p.facultyGuide LEFT JOIN FETCH p.teamLead WHERE p.facultyGuide.id = :facultyId")
     List<Project> findProjectsByFacultyId(@Param("facultyId") Long facultyId);
 
     @Query("""

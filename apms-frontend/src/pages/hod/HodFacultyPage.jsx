@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Paper, Grid, Card, CardContent, CircularProgress, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Avatar } from '@mui/material';
+import ExportButton from '../../components/ExportButton';
 import { hodService } from '../../services/hodService';
 import { projectService } from '../../services/projectService';
 
@@ -59,7 +60,10 @@ const HodFacultyPage = () => {
 
   return (
     <Box>
-      <Typography variant="h4" sx={{ fontWeight: 500, mb: 3, color: '#1a0a0a' }}>Department Faculty Workload</Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mb: 3, flexWrap: 'wrap' }}>
+        <Typography variant="h4" sx={{ fontWeight: 500, color: '#1a0a0a' }}>Department Faculty Workload</Typography>
+        <ExportButton reportType="faculty-load" disabled={loading} />
+      </Box>
 
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>

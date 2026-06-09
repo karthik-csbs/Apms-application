@@ -9,6 +9,7 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import EditIcon from '@mui/icons-material/Edit';
+import ExportButton from '../../components/ExportButton';
 import { projectService } from '../../services/projectService';
 import { studentService } from '../../services/studentService';
 import { AuthContext } from '../../context/AuthContext';
@@ -197,11 +198,14 @@ const ProjectList = () => {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mb: 3, flexWrap: 'wrap' }}>
         <Typography variant="h4" sx={{ fontWeight: 500 }}>Project Management</Typography>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpenCreateDialog}>
-          Create Project
-        </Button>
+        <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', rowGap: 1 }}>
+          <ExportButton reportType="project" disabled={loading} />
+          <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpenCreateDialog}>
+            Create Project
+          </Button>
+        </Stack>
       </Box>
 
       <Paper sx={{ p: 3, mb: 3 }}>
