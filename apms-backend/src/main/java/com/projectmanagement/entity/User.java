@@ -64,8 +64,10 @@ public class User extends Auditable implements UserDetails {
         return true;
     }
 
+    private boolean enabled = true;
+
     @Override
     public boolean isEnabled() {
-        return true;
+        return this.enabled;
     }
 }

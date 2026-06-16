@@ -36,27 +36,8 @@ public class FacultyController {
         return ResponseEntity.ok(new ApiResponse<>(true, "Faculty projects fetched successfully", projects));
     }
 
-    @GetMapping("/students")
-    public ResponseEntity<ApiResponse<List<StudentProfileResponse>>> getFacultyStudents(@AuthenticationPrincipal User user) {
-        List<Student> students = studentRepository.findByFacultyId(user.getId());
-        List<StudentProfileResponse> response = students.stream()
-                .map(student -> new StudentProfileResponse(
-                        student.getId(),
-                        student.getName(),
-                        student.getEmail(),
-                        student.getRegisterNumber(),
-                        student.getDepartment() != null ? student.getDepartment().getName() : null,
-                        student.getDepartment() != null ? student.getDepartment().getId() : null,
-                        student.getMobile(),
-                        student.getSkills(),
-                        student.getGithubProfile(),
-                        student.getLinkedinUrl(),
-                        student.getResumeUrl(),
-                        student.getCreatedAt()
-                ))
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(new ApiResponse<>(true, "Faculty students fetched successfully", response));
-    }
+    // Delegated to FacultyStudentController to avoid ambiguous mapping
+
 
     @PostMapping("/student/{id}/send-credentials")
     public ResponseEntity<ApiResponse<Void>> sendCredentials(
