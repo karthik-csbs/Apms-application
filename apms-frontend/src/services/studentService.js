@@ -16,11 +16,13 @@ export const studentService = {
     return response?.data?.data ?? response.data;
   },
 
-  facultyGetStudents: async (search = '', page = 0, size = 10) => {
+  facultyGetStudents: async (search = '', page = 0, size = 10, sortBy = 'id', sortDir = 'desc') => {
     const params = new URLSearchParams();
     if (search) params.append('search', search);
     params.append('page', page);
     params.append('size', size);
+    params.append('sortBy', sortBy);
+    params.append('sortDir', sortDir);
     const response = await api.get(`/faculty/students?${params.toString()}`);
     return response?.data?.data ?? response.data;
   },

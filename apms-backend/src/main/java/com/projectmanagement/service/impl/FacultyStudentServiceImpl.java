@@ -124,7 +124,15 @@ public class FacultyStudentServiceImpl implements FacultyStudentService {
             countJpql.append(" AND ").append(cond);
         }
 
-        jpql.append(" ORDER BY s.id DESC");
+        if (pageable.getSort().isSorted()) {
+            jpql.append(" ORDER BY ");
+            String sortedFields = pageable.getSort().stream()
+                    .map(order -> "s." + order.getProperty() + " " + order.getDirection().name())
+                    .collect(Collectors.joining(", "));
+            jpql.append(sortedFields);
+        } else {
+            jpql.append(" ORDER BY s.id DESC");
+        }
 
         TypedQuery<Student> query = entityManager.createQuery(jpql.toString(), Student.class);
         TypedQuery<Long> countQuery = entityManager.createQuery(countJpql.toString(), Long.class);

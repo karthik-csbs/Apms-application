@@ -4,7 +4,7 @@ import {
   CircularProgress, Snackbar, Alert, Dialog, DialogTitle, 
   DialogContent, DialogActions, FormControl, InputLabel, 
   Select, MenuItem, Autocomplete, Chip, Table, TableBody, 
-  TableCell, TableContainer, TableHead, TableRow, IconButton, Stack, Grid
+  TableCell, TableContainer, TableHead, TableRow, IconButton, Stack, Grid, TablePagination
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
@@ -38,28 +38,48 @@ const ProjectList = () => {
 
   const [alert, setAlert] = useState({ show: false, message: '', severity: 'success' });
 
+  // Pagination & Sorting State
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [totalCount, setTotalCount] = useState(0);
+  const [sortBy, setSortBy] = useState('id');
+  const [sortDir, setSortDir] = useState('desc');
+
   useEffect(() => {
     if (!user || authLoading) return;
 
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, authLoading]);
+  }, [user, authLoading, page, rowsPerPage, searchTerm, sortBy, sortDir]);
 
   const fetchData = async () => {
     try {
       setLoading(true);
 
-      // Load Faculty Projects with one retry
+      // Load Faculty Projects with search & pagination parameters
       let projRes;
       try {
-        projRes = await projectService.getFacultyProjects();
+        projRes = await projectService.getFacultyProjects({
+          search: searchTerm,
+          page,
+          size: rowsPerPage,
+          sortBy,
+          sortDir
+        });
       } catch (firstErr) {
         console.warn('First attempt to fetch projects failed, retrying once', firstErr);
-        projRes = await projectService.getFacultyProjects();
+        projRes = await projectService.getFacultyProjects({
+          search: searchTerm,
+          page,
+          size: rowsPerPage,
+          sortBy,
+          sortDir
+        });
       }
 
-      if (projRes && Array.isArray(projRes)) {
-        setProjects(projRes);
+      if (projRes) {
+        setProjects(projRes.content || projRes || []);
+        setTotalCount(projRes.totalElements !== undefined ? projRes.totalElements : (projRes.length || 0));
       }
 
       // Load all students for the dropdown selection with one retry
@@ -190,11 +210,7 @@ const ProjectList = () => {
     }
   };
 
-  const filteredProjects = projects.filter(p => 
-    p.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.projectType?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.completionStatus?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+
 
   return (
     <Box>
@@ -230,53 +246,71 @@ const ProjectList = () => {
             <CircularProgress color="primary" />
           </Box>
         ) : (
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Title</TableCell>
-                  <TableCell>Type</TableCell>
-                  <TableCell>Duration</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Team Lead</TableCell>
-                  <TableCell align="right">Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredProjects.length === 0 ? (
+          <>
+            <TableContainer>
+              <Table>
+                <TableHead>
                   <TableRow>
-                    <TableCell colSpan={6} align="center" sx={{ py: 3, color: 'text.secondary' }}>
-                      No projects found.
-                    </TableCell>
+                    <TableCell>S.No</TableCell>
+                    <TableCell>Title</TableCell>
+                    <TableCell>Type</TableCell>
+                    <TableCell>Duration</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell>Team Lead</TableCell>
+                    <TableCell align="right">Actions</TableCell>
                   </TableRow>
-                ) : (
-                  filteredProjects.map((p) => {
-                    const lead = p.teamMembers?.find(m => m.role === 'TEAM_LEAD' || m.isTeamLead);
-                    return (
-                      <TableRow key={p.id}>
-                        <TableCell sx={{ fontWeight: 500 }}>{p.title}</TableCell>
-                        <TableCell><Chip label={p.projectType} size="small" variant="outlined" /></TableCell>
-                        <TableCell>{p.duration} Weeks</TableCell>
-                        <TableCell>
-                          <Chip 
-                            label={p.completionStatus || 'ACTIVE'} 
-                            color={p.completionStatus === 'APPROVED' ? 'success' : (p.completionStatus === 'PENDING_APPROVAL' ? 'warning' : 'primary')}
-                            size="small"
-                          />
-                        </TableCell>
-                        <TableCell>{lead ? lead.studentName : 'Not assigned'}</TableCell>
-                        <TableCell align="right">
-                          <IconButton onClick={() => handleOpenEditDialog(p)} color="primary" size="small" title="Edit details">
-                            <EditIcon />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                </TableHead>
+                <TableBody>
+                  {projects.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} align="center" sx={{ py: 3, color: 'text.secondary' }}>
+                        No projects found.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    projects.map((p, index) => {
+                      const lead = p.teamMembers?.find(m => m.role === 'TEAM_LEAD' || m.isTeamLead);
+                      return (
+                        <TableRow key={p.id}>
+                          <TableCell>{(page * rowsPerPage) + index + 1}</TableCell>
+                          <TableCell sx={{ fontWeight: 500 }}>{p.title}</TableCell>
+                          <TableCell><Chip label={p.projectType} size="small" variant="outlined" /></TableCell>
+                          <TableCell>{p.duration} Weeks</TableCell>
+                          <TableCell>
+                            <Chip 
+                              label={p.completionStatus || 'ACTIVE'} 
+                              color={p.completionStatus === 'APPROVED' ? 'success' : (p.completionStatus === 'PENDING_APPROVAL' ? 'warning' : 'primary')}
+                              size="small"
+                            />
+                          </TableCell>
+                          <TableCell>{lead ? lead.studentName : 'Not assigned'}</TableCell>
+                          <TableCell align="right">
+                            <IconButton onClick={() => handleOpenEditDialog(p)} color="primary" size="small" title="Edit details">
+                              <EditIcon />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', pt: 2 }}>
+              <TablePagination
+                component="div"
+                count={totalCount}
+                page={page}
+                onPageChange={(e, newPage) => setPage(newPage)}
+                rowsPerPage={rowsPerPage}
+                onRowsPerPageChange={(e) => {
+                  setRowsPerPage(parseInt(e.target.value, 10));
+                  setPage(0);
+                }}
+                rowsPerPageOptions={[5, 10, 25]}
+              />
+            </Box>
+          </>
         )}
       </Paper>
 

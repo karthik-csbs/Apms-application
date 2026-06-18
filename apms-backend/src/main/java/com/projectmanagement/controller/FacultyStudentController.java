@@ -41,13 +41,19 @@ public class FacultyStudentController {
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir,
             @AuthenticationPrincipal User user) {
         if (page == null || size == null) {
             java.util.List<FacultyStudentDto> list = facultyStudentService.getStudentsList(search, user);
             return ResponseEntity.ok(new ApiResponse<>(true, "Students list fetched successfully", list));
         }
-        Page<FacultyStudentDto> students = facultyStudentService.getStudents(search, PageRequest.of(page, size), user);
-        return ResponseEntity.ok(new ApiResponse<>(true, "Students list fetched successfully", students));
+        org.springframework.data.domain.Sort sort = org.springframework.data.domain.Sort.by(
+                sortDir.equalsIgnoreCase("asc") ? org.springframework.data.domain.Sort.Direction.ASC : org.springframework.data.domain.Sort.Direction.DESC,
+                sortBy
+        );
+        Page<FacultyStudentDto> students = facultyStudentService.getStudents(search, PageRequest.of(page, size, sort), user);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Students list fetched successfully", com.projectmanagement.dto.PageResponse.from(students)));
     }
 
     @GetMapping("/{id}")

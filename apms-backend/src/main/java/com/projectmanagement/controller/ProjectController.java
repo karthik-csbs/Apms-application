@@ -62,8 +62,22 @@ public class ProjectController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'PRINCIPAL', 'HOD')")
-    public ResponseEntity<ApiResponse<Page<ProjectResponse>>> getAllProjects(Pageable pageable) {
-        Page<ProjectResponse> projects = projectService.getAllProjects(pageable);
+    public ResponseEntity<ApiResponse<Object>> getAllProjects(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
+        if (page == null || size == null) {
+            // Keep backwards compatibility
+            Page<ProjectResponse> projects = projectService.getAllProjects(org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE));
+            return ResponseEntity.ok(new ApiResponse<>(true, "Projects fetched successfully", projects.getContent()));
+        }
+        org.springframework.data.domain.Sort sort = org.springframework.data.domain.Sort.by(
+                sortDir.equalsIgnoreCase("asc") ? org.springframework.data.domain.Sort.Direction.ASC : org.springframework.data.domain.Sort.Direction.DESC,
+                sortBy
+        );
+        com.projectmanagement.dto.PageResponse<ProjectResponse> projects = projectService.getAllProjectsPaginated(search, org.springframework.data.domain.PageRequest.of(page, size, sort));
         return ResponseEntity.ok(new ApiResponse<>(true, "Projects fetched successfully", projects));
     }
 

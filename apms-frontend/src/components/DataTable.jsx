@@ -66,7 +66,7 @@ const DataTable = ({
                       const value = row[column.id];
                       return (
                         <TableCell key={column.id} align={column.numeric ? 'right' : 'left'}>
-                          {column.render ? column.render(value, row) : value}
+                          {column.render ? column.render(value, row, index) : value}
                         </TableCell>
                       );
                     })}

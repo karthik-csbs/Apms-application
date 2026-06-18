@@ -6,8 +6,8 @@ export const facultyService = {
     return response?.data?.data ?? response.data;
   },
 
-  getStudents: async () => {
-    const response = await api.get('/faculty/students');
+  getStudents: async (params = {}) => {
+    const response = await api.get('/faculty/students', { params });
     return response?.data?.data ?? response.data;
   }
 };

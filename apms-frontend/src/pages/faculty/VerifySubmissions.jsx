@@ -88,6 +88,12 @@ const VerifySubmissions = () => {
   };
 
   const columns = [
+    {
+      id: 'serialNo',
+      label: 'S.No',
+      minWidth: 60,
+      render: (value, row, index) => index + 1
+    },
     { id: 'projectTitle', label: 'Project Title', minWidth: 200 },
     { id: 'studentName', label: 'Student', minWidth: 150 },
     { 

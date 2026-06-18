@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -31,8 +32,22 @@ public class FacultyController {
     private final StudentRepository studentRepository;
 
     @GetMapping("/projects")
-    public ResponseEntity<ApiResponse<List<ProjectResponse>>> getFacultyProjects(@AuthenticationPrincipal User user) {
-        List<ProjectResponse> projects = projectService.getProjectsByFaculty(user.getId());
+    public ResponseEntity<ApiResponse<Object>> getFacultyProjects(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir,
+            @AuthenticationPrincipal User user) {
+        if (page == null || size == null) {
+            List<ProjectResponse> projects = projectService.getProjectsByFaculty(user.getId());
+            return ResponseEntity.ok(new ApiResponse<>(true, "Faculty projects fetched successfully", projects));
+        }
+        org.springframework.data.domain.Sort sort = org.springframework.data.domain.Sort.by(
+                sortDir.equalsIgnoreCase("asc") ? org.springframework.data.domain.Sort.Direction.ASC : org.springframework.data.domain.Sort.Direction.DESC,
+                sortBy
+        );
+        com.projectmanagement.dto.PageResponse<ProjectResponse> projects = projectService.getFacultyProjectsPaginated(user.getId(), search, org.springframework.data.domain.PageRequest.of(page, size, sort));
         return ResponseEntity.ok(new ApiResponse<>(true, "Faculty projects fetched successfully", projects));
     }
 

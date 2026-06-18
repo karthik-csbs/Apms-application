@@ -1,5 +1,6 @@
 package com.projectmanagement.service;
 
+import com.projectmanagement.dto.PageResponse;
 import com.projectmanagement.dto.ProjectCreateRequestDto;
 import com.projectmanagement.dto.ProjectResponse;
 import com.projectmanagement.dto.StudentProjectResponseDto;
@@ -132,6 +133,16 @@ public class ProjectService {
         }
 
         return mapToResponse(project);
+    }
+
+    public PageResponse<ProjectResponse> getAllProjectsPaginated(String search, Pageable pageable) {
+        Page<Project> page = projectRepository.findAllPaginated(search, pageable);
+        return PageResponse.from(page, this::mapToResponse);
+    }
+
+    public PageResponse<ProjectResponse> getFacultyProjectsPaginated(Long facultyId, String search, Pageable pageable) {
+        Page<Project> page = projectRepository.findFacultyProjectsPaginated(facultyId, search, pageable);
+        return PageResponse.from(page, this::mapToResponse);
     }
 
     public Page<ProjectResponse> getAllProjects(Pageable pageable) {

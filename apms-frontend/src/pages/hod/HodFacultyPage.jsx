@@ -97,6 +97,7 @@ const HodFacultyPage = () => {
                 <Table size="medium">
                   <TableHead>
                     <TableRow>
+                      <TableCell>S.No</TableCell>
                       <TableCell>Faculty Member</TableCell>
                       <TableCell>Email</TableCell>
                       <TableCell>Designation</TableCell>
@@ -104,8 +105,9 @@ const HodFacultyPage = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {faculties.map((f) => (
+                    {faculties.map((f, index) => (
                       <TableRow key={f.id}>
+                        <TableCell>{index + 1}</TableCell>
                         <TableCell sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                           <Avatar sx={{ bgcolor: '#8b1a1a', width: 32, height: 32, fontSize: 13 }}>
                             {f.name.split(' ').map(w => w[0]).join('').slice(0, 2)}

@@ -46,8 +46,8 @@ export const projectService = {
     return response?.data?.data ?? response.data;
   },
 
-  getFacultyProjects: async () => {
-    const response = await api.get('/faculty/projects');
+  getFacultyProjects: async (params = {}) => {
+    const response = await api.get('/faculty/projects', { params });
     return response?.data?.data ?? response.data;
   },
 

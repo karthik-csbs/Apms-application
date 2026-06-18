@@ -41,6 +41,8 @@ export default function CreateStudents() {
   const [size]                    = useState(10);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
+  const [sortBy, setSortBy]       = useState("id");
+  const [sortDir, setSortDir]     = useState("desc");
 
   // Modals & Dialogs
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -60,13 +62,13 @@ export default function CreateStudents() {
   useEffect(() => {
     fetchStudents();
     fetchProjects();
-  }, [page, search]);
+  }, [page, search, sortBy, sortDir]);
 
   // ---------------------------------------------------------------------------
   async function fetchStudents() {
     setLoading(true);
     try {
-      const data = await studentService.facultyGetStudents(search, page, size);
+      const data = await studentService.facultyGetStudents(search, page, size, sortBy, sortDir);
       if (data) {
         setStudents(data.content || []);
         setTotalPages(data.totalPages || 0);
@@ -281,9 +283,20 @@ export default function CreateStudents() {
             <table style={s.table}>
               <thead>
                 <tr>
-                  {["#", "Register No.", "Name", "Email", "Department", "Project", "Status", "Actions"].map((h) => (
-                    <th key={h} style={s.th}>{h}</th>
-                  ))}
+                  <th style={s.th}>S.No</th>
+                  <th style={{ ...s.th, cursor: "pointer" }} onClick={() => { setSortBy("registerNumber"); setSortDir(p => p === "asc" ? "desc" : "asc"); }}>
+                    Register No. {sortBy === "registerNumber" ? (sortDir === "asc" ? "▲" : "▼") : ""}
+                  </th>
+                  <th style={{ ...s.th, cursor: "pointer" }} onClick={() => { setSortBy("name"); setSortDir(p => p === "asc" ? "desc" : "asc"); }}>
+                    Name {sortBy === "name" ? (sortDir === "asc" ? "▲" : "▼") : ""}
+                  </th>
+                  <th style={{ ...s.th, cursor: "pointer" }} onClick={() => { setSortBy("email"); setSortDir(p => p === "asc" ? "desc" : "asc"); }}>
+                    Email {sortBy === "email" ? (sortDir === "asc" ? "▲" : "▼") : ""}
+                  </th>
+                  <th style={s.th}>Department</th>
+                  <th style={s.th}>Project</th>
+                  <th style={s.th}>Status</th>
+                  <th style={s.th}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -325,25 +338,25 @@ export default function CreateStudents() {
             </table>
 
             {/* Pagination Controls */}
-            {totalPages > 1 && (
-              <div style={s.pagination}>
-                <button
-                  style={page === 0 ? s.pagBtnOff : s.pagBtn}
-                  disabled={page === 0}
-                  onClick={() => setPage(p => p - 1)}
-                >
-                  Previous
-                </button>
-                <span style={s.pagText}>Page {page + 1} of {totalPages}</span>
-                <button
-                  style={page >= totalPages - 1 ? s.pagBtnOff : s.pagBtn}
-                  disabled={page >= totalPages - 1}
-                  onClick={() => setPage(p => p + 1)}
-                >
-                  Next
-                </button>
-              </div>
-            )}
+            <div style={s.pagination}>
+              <button
+                style={page === 0 ? s.pagBtnOff : s.pagBtn}
+                disabled={page === 0}
+                onClick={() => setPage(p => p - 1)}
+              >
+                Previous
+              </button>
+              <span style={s.pagText}>
+                Page {page + 1} of {Math.max(1, totalPages)} (Total: {totalElements})
+              </span>
+              <button
+                style={page >= totalPages - 1 ? s.pagBtnOff : s.pagBtn}
+                disabled={page >= totalPages - 1}
+                onClick={() => setPage(p => p + 1)}
+              >
+                Next
+              </button>
+            </div>
           </div>
         )}
       </div>

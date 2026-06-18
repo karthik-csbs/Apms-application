@@ -193,6 +193,7 @@ const AdminUserManagement = () => {
               <Table size="small">
                 <TableHead>
                   <TableRow>
+                    <TableCell>S.No</TableCell>
                     <TableCell>Name</TableCell>
                     <TableCell>Register No.</TableCell>
                     <TableCell>Email</TableCell>
@@ -202,15 +203,16 @@ const AdminUserManagement = () => {
                 <TableBody>
                   {loadingStudents ? (
                     <TableRow>
-                      <TableCell colSpan={4} align="center">Loading students...</TableCell>
+                      <TableCell colSpan={5} align="center">Loading students...</TableCell>
                     </TableRow>
                   ) : students.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} align="center">No students registered yet</TableCell>
+                      <TableCell colSpan={5} align="center">No students registered yet</TableCell>
                     </TableRow>
                   ) : (
-                    students.map((st) => (
+                    students.map((st, index) => (
                       <TableRow key={st.id}>
+                        <TableCell>{index + 1}</TableCell>
                         <TableCell sx={{ fontWeight: 500 }}>{st.name}</TableCell>
                         <TableCell><Chip label={st.registerNumber} size="small" variant="outlined" /></TableCell>
                         <TableCell>{st.email}</TableCell>
