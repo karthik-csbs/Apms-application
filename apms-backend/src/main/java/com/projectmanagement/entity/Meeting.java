@@ -9,7 +9,11 @@ import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "meetings")
@@ -22,30 +26,55 @@ public class Meeting {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "project_id", nullable = false)
+    @Column(nullable = false)
+    private String title;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "meeting_type", nullable = false)
+    private MeetingType meetingType;
+
+    @Column(name = "meeting_date", nullable = false)
+    private LocalDate meetingDate;
+
+    @Column(name = "start_time", nullable = false)
+    private LocalTime startTime;
+
+    @Column(name = "end_time", nullable = false)
+    private LocalTime endTime;
+
+    private String location;
+
+    @Column(name = "meeting_link")
+    private String meetingLink;
+
+    @Enumerated(EnumType.STRING)
+    private MeetingStatus status = MeetingStatus.SCHEDULED;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "project_id")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Project project;
 
-    @ManyToOne
-    @JoinColumn(name = "faculty_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_id")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private Faculty faculty;
+    private Department department;
 
-    @ManyToOne
-    @JoinColumn(name = "student_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by", nullable = false)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private Student student;
+    private User createdBy;
 
-    private String agenda;
-
-    private LocalDateTime scheduledAt;
-
-    @Enumerated(EnumType.STRING)
-    private MeetingStatus status = MeetingStatus.REQUESTED;
+    @OneToMany(mappedBy = "meeting", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<MeetingParticipant> participants = new ArrayList<>();
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

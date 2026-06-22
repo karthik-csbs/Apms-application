@@ -28,5 +28,6 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     WHERE (:search IS NULL OR :search = '' OR LOWER(s.name) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(s.email) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(s.registerNumber) LIKE LOWER(CONCAT('%', :search, '%')))
     """)
     org.springframework.data.domain.Page<Student> findAllPaginated(@Param("search") String search, org.springframework.data.domain.Pageable pageable);
+    List<Student> findByDepartmentId(Long departmentId);
 }
 
