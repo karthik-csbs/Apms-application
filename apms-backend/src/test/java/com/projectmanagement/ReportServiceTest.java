@@ -99,6 +99,71 @@ public class ReportServiceTest {
         byte[] pdfBytes = reportService.exportPdf(ReportType.PROJECT, Collections.singletonList(dto));
         assertNotNull(pdfBytes);
         assertTrue(pdfBytes.length > 0);
+
+        byte[] excelBytes = reportService.exportExcel(ReportType.PROJECT, Collections.singletonList(dto));
+        assertNotNull(excelBytes);
+        assertTrue(excelBytes.length > 0);
+    }
+
+    @Test
+    void testExportPdf_Review() {
+        ReviewReportDto dto = new ReviewReportDto();
+        dto.setReviewId(1L);
+        dto.setProjectName("Project Name");
+        dto.setReviewer("Reviewer Name");
+        dto.setStage("Stage 1");
+        dto.setReviewDate(LocalDateTime.now());
+        dto.setScore("A");
+        dto.setComments("Good progress");
+        dto.setStatus("APPROVED");
+
+        byte[] pdfBytes = reportService.exportPdf(ReportType.REVIEW, Collections.singletonList(dto));
+        assertNotNull(pdfBytes);
+        assertTrue(pdfBytes.length > 0);
+
+        byte[] excelBytes = reportService.exportExcel(ReportType.REVIEW, Collections.singletonList(dto));
+        assertNotNull(excelBytes);
+        assertTrue(excelBytes.length > 0);
+    }
+
+    @Test
+    void testExportPdf_FacultyLoad() {
+        FacultyLoadReportDto dto = new FacultyLoadReportDto();
+        dto.setFacultyId(1L);
+        dto.setFacultyName("Faculty Name");
+        dto.setDepartment("CSE");
+        dto.setAssignedProjects(5L);
+        dto.setCompletedProjects(3L);
+        dto.setPendingReviews(2L);
+        dto.setActiveReviews(1L);
+
+        byte[] pdfBytes = reportService.exportPdf(ReportType.FACULTY_LOAD, Collections.singletonList(dto));
+        assertNotNull(pdfBytes);
+        assertTrue(pdfBytes.length > 0);
+
+        byte[] excelBytes = reportService.exportExcel(ReportType.FACULTY_LOAD, Collections.singletonList(dto));
+        assertNotNull(excelBytes);
+        assertTrue(excelBytes.length > 0);
+    }
+
+    @Test
+    void testExportPdf_Submission() {
+        SubmissionReportDto dto = new SubmissionReportDto();
+        dto.setSubmissionId(1L);
+        dto.setProjectName("Project Name");
+        dto.setSubmittedBy("Student Name");
+        dto.setSubmissionDate(LocalDateTime.now());
+        dto.setGitHubUrl("http://github.com");
+        dto.setDocumentationUrl("http://drive.google.com");
+        dto.setStatus("SUBMITTED");
+
+        byte[] pdfBytes = reportService.exportPdf(ReportType.SUBMISSION, Collections.singletonList(dto));
+        assertNotNull(pdfBytes);
+        assertTrue(pdfBytes.length > 0);
+
+        byte[] excelBytes = reportService.exportExcel(ReportType.SUBMISSION, Collections.singletonList(dto));
+        assertNotNull(excelBytes);
+        assertTrue(excelBytes.length > 0);
     }
 }
 

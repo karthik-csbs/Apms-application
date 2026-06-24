@@ -30,6 +30,10 @@ const createFallbackFilename = (reportType, extension) => {
 };
 
 const getErrorMessage = (error, label) => {
+  if (error?.response?.data?.message) {
+    return error.response.data.message;
+  }
+
   if (error?.response?.status === 403) {
     return "You do not have permission to export this report.";
   }
@@ -71,6 +75,8 @@ const ExportButton = ({
   const handleDownload = async ({ label, format, extension }) => {
     try {
       setLoadingFormat(format);
+      const exportUrl = `/reports/${reportType}/export/${format}`;
+      console.log(exportUrl);
 
       const response = await reportService.exportReport(reportType, format, params);
       const contentType = response.headers?.["content-type"] || "application/octet-stream";

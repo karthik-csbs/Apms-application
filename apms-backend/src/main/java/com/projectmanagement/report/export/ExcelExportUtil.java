@@ -120,13 +120,20 @@ public class ExcelExportUtil {
                 }
             }
 
-            // Auto-size columns
-            for (int i = 0; i < headers.length; i++) {
-                sheet.autoSizeColumn(i);
+            // Auto-size columns safely
+            try {
+                for (int i = 0; i < headers.length; i++) {
+                    sheet.autoSizeColumn(i);
+                }
+            } catch (Exception e) {
+                // Log and swallow graphics environment exception in headless environments
             }
 
             workbook.write(out);
-            return out.toByteArray();
+            out.flush();
+            byte[] bytes = out.toByteArray();
+            workbook.dispose();
+            return bytes;
         }
     }
 

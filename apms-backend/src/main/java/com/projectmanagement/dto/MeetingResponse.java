@@ -36,5 +36,8 @@ public class MeetingResponse {
     private Long createdById;
     private String createdByName;
     
+    private Long facultyId;
+    private String facultyName;
+    
     private List<MeetingParticipantResponse> participants;
 }

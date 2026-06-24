@@ -152,13 +152,13 @@
 				<reportElement x="680" y="0" width="60" height="20" uuid="45217cc9-66c3-4d67-93cf-619bf1f62c64"/>
 				<box><pen lineWidth="0.5"/></box>
 				<textElement textAlignment="Center" verticalAlignment="Middle"/>
-				<textFieldExpression><![CDATA[$F{createdDate} != null ? java.lang.String.format("%tF", java.sql.Timestamp.valueOf($F{createdDate})) : ""]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{createdDate} != null ? $F{createdDate}.format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd")) : ""]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
 				<reportElement x="740" y="0" width="62" height="20" uuid="45317cc9-66c3-4d67-93cf-619bf1f62c64"/>
 				<box><pen lineWidth="0.5"/></box>
 				<textElement textAlignment="Center" verticalAlignment="Middle"/>
-				<textFieldExpression><![CDATA[$F{completedDate} != null ? java.lang.String.format("%tF", java.sql.Timestamp.valueOf($F{completedDate})) : ""]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{completedDate} != null ? $F{completedDate}.format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd")) : ""]]></textFieldExpression>
 			</textField>
 		</band>
 	</detail>

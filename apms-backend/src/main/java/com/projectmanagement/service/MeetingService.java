@@ -5,6 +5,7 @@ import com.projectmanagement.entity.*;
 import com.projectmanagement.exception.ResourceNotFoundException;
 import com.projectmanagement.repository.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class MeetingService {
 
     private final MeetingRepository meetingRepository;
@@ -33,6 +35,99 @@ public class MeetingService {
 
     @Transactional
     public MeetingResponse createMeeting(MeetingRequest request, User currentUser) {
+        log.info("createMeeting request: title={}, description={}, meetingType={}, meetingDate={}, startTime={}, endTime={}, location={}, meetingLink={}, projectId={}, departmentId={}, participantIds={}. currentUser: {}",
+                request.getTitle(),
+                request.getDescription(),
+                request.getMeetingType(),
+                request.getMeetingDate(),
+                request.getStartTime(),
+                request.getEndTime(),
+                request.getLocation(),
+                request.getMeetingLink(),
+                request.getProjectId(),
+                request.getDepartmentId(),
+                request.getParticipantIds(),
+                currentUser != null ? currentUser.getEmail() : "null");
+
+        // Input validation to prevent NullPointerExceptions and database constraint violations
+        if (request.getTitle() == null || request.getTitle().trim().isEmpty()) {
+            throw new com.projectmanagement.exception.ValidationException("Title is required");
+        }
+        if (request.getMeetingType() == null) {
+            throw new com.projectmanagement.exception.ValidationException("Meeting type is required");
+        }
+        if (request.getMeetingDate() == null) {
+            throw new com.projectmanagement.exception.ValidationException("Meeting date is required");
+        }
+        if (request.getStartTime() == null) {
+            throw new com.projectmanagement.exception.ValidationException("Start time is required");
+        }
+        if (request.getEndTime() == null) {
+            throw new com.projectmanagement.exception.ValidationException("End time is required");
+        }
+        if (request.getEndTime().isBefore(request.getStartTime())) {
+            throw new com.projectmanagement.exception.ValidationException("End time must be after start time");
+        }
+
+        // Validate project existence
+        if (request.getProjectId() != null) {
+            if (!projectRepository.existsById(request.getProjectId())) {
+                throw new com.projectmanagement.exception.ResourceNotFoundException("Project not found");
+            }
+        } else if (request.getMeetingType() == MeetingType.PROJECT_MEETING || request.getMeetingType() == MeetingType.REVIEW_MEETING) {
+            throw new com.projectmanagement.exception.ValidationException("Project ID is required for project or review meetings");
+        }
+
+        // Validate participant existence
+        if (request.getParticipantIds() != null && !request.getParticipantIds().isEmpty()) {
+            for (Long userId : request.getParticipantIds()) {
+                if (userId == null) continue;
+                if (!userRepository.existsById(userId)) {
+                    throw new com.projectmanagement.exception.ResourceNotFoundException("User not found: " + userId);
+                }
+                if (request.getMeetingType() == MeetingType.STUDENT_MEETING) {
+                    if (!studentRepository.existsById(userId)) {
+                        throw new com.projectmanagement.exception.ResourceNotFoundException("Student not found for ID: " + userId);
+                    }
+                }
+                if (request.getMeetingType() == MeetingType.FACULTY_MEETING) {
+                    if (!facultyRepository.existsById(userId)) {
+                        throw new com.projectmanagement.exception.ResourceNotFoundException("Faculty not found for ID: " + userId);
+                    }
+                }
+            }
+        } else if (request.getMeetingType() == MeetingType.STUDENT_MEETING || request.getMeetingType() == MeetingType.FACULTY_MEETING) {
+            throw new com.projectmanagement.exception.ValidationException("Participants list cannot be empty for student or faculty meetings");
+        }
+
+        if (currentUser == null) {
+            throw new com.projectmanagement.exception.ValidationException("User not authenticated");
+        }
+
+        Faculty faculty = facultyRepository.findByUserId(currentUser.getId()).orElse(null);
+        if (faculty == null) {
+            if (request.getProjectId() != null) {
+                Project project = projectRepository.findById(request.getProjectId()).orElse(null);
+                if (project != null && project.getFacultyGuide() != null) {
+                    faculty = facultyRepository.findById(project.getFacultyGuide().getId()).orElse(null);
+                }
+            }
+            if (faculty == null) {
+                faculty = facultyRepository.findAll().stream().findFirst().orElse(null);
+            }
+        }
+
+        if (faculty == null) {
+            throw new com.projectmanagement.exception.ValidationException("Faculty profile not found");
+        }
+
+        log.info("createMeeting request - currentUser: {}, facultyId: {}, meetingType: {}, projectId: {}, participantIds: {}",
+                currentUser.getEmail(),
+                faculty.getId(),
+                request.getMeetingType(),
+                request.getProjectId(),
+                request.getParticipantIds());
+
         Meeting meeting = new Meeting();
         meeting.setTitle(request.getTitle());
         meeting.setDescription(request.getDescription());
@@ -43,6 +138,7 @@ public class MeetingService {
         meeting.setLocation(request.getLocation());
         meeting.setMeetingLink(request.getMeetingLink());
         meeting.setCreatedBy(currentUser);
+        meeting.setFaculty(faculty);
         meeting.setStatus(MeetingStatus.SCHEDULED);
 
         if (request.getProjectId() != null) {
@@ -83,27 +179,76 @@ public class MeetingService {
             String sortBy,
             String sortDir
     ) {
+        return getMeetingsFiltered(currentUser, page, size, search, sortBy, sortDir, null, null);
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<MeetingResponse> getUpcomingMeetings(
+            User currentUser,
+            int page,
+            int size,
+            String search,
+            String sortBy,
+            String sortDir
+    ) {
+        return getMeetingsFiltered(currentUser, page, size, search, sortBy, sortDir, LocalDate.now(), null);
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<MeetingResponse> getHistoryMeetings(
+            User currentUser,
+            int page,
+            int size,
+            String search,
+            String sortBy,
+            String sortDir
+    ) {
+        return getMeetingsFiltered(currentUser, page, size, search, sortBy, sortDir, null, LocalDate.now());
+    }
+
+    private PageResponse<MeetingResponse> getMeetingsFiltered(
+            User currentUser,
+            int page,
+            int size,
+            String search,
+            String sortBy,
+            String sortDir,
+            LocalDate today,
+            LocalDate todayPast
+    ) {
+        if (sortBy == null || sortBy.trim().isEmpty()) {
+            sortBy = "meetingDate";
+        }
+        List<String> allowedSortFields = Arrays.asList("id", "title", "meetingType", "meetingDate", "startTime", "endTime", "location", "status");
+        if (!allowedSortFields.contains(sortBy)) {
+            sortBy = "meetingDate";
+        }
+
         Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        // Resolve HOD department if current user is HOD, Faculty department if Faculty, Student department if Student
-        Long deptId = null;
-        if (currentUser.getRole() == Role.HOD) {
+        String searchQuery = (search == null || search.trim().isEmpty()) ? null : search;
+        Page<Meeting> meetingsPage;
+
+        Role role = currentUser.getRole();
+        if (role == Role.ADMIN || role == Role.PRINCIPAL) {
+            meetingsPage = meetingRepository.findAllMeetings(today, todayPast, searchQuery, pageable);
+        } else if (role == Role.HOD) {
+            Long deptId = null;
             Faculty fac = facultyRepository.findByEmail(currentUser.getEmail()).orElse(null);
             if (fac != null && fac.getDepartment() != null) {
                 deptId = fac.getDepartment().getId();
             }
+            meetingsPage = meetingRepository.findMeetingsForHod(currentUser.getId(), deptId, today, todayPast, searchQuery, pageable);
+        } else if (role == Role.FACULTY) {
+            meetingsPage = meetingRepository.findMeetingsForFaculty(currentUser.getId(), today, todayPast, searchQuery, pageable);
+        } else if (role == Role.STUDENT) {
+            meetingsPage = meetingRepository.findMeetingsForStudent(currentUser.getId(), today, todayPast, searchQuery, pageable);
+        } else {
+            meetingsPage = Page.empty(pageable);
         }
 
-        Page<Meeting> meetings = meetingRepository.findMyMeetings(
-                currentUser.getId(),
-                currentUser.getRole().name(),
-                deptId,
-                search == null || search.trim().isEmpty() ? null : search,
-                pageable
-        );
-
-        return PageResponse.from(meetings, this::convertToResponse);
+        return PageResponse.from(meetingsPage, this::convertToResponse);
     }
 
     @Transactional
@@ -311,15 +456,19 @@ public class MeetingService {
     }
 
     private MeetingResponse convertToResponse(Meeting meeting) {
+        if (meeting == null) {
+            return null;
+        }
         List<MeetingParticipantResponse> participantResponses = Collections.emptyList();
         if (meeting.getParticipants() != null) {
             participantResponses = meeting.getParticipants().stream()
+                    .filter(p -> p != null && p.getUser() != null)
                     .map(p -> MeetingParticipantResponse.builder()
                             .id(p.getId())
                             .userId(p.getUser().getId())
                             .name(p.getUser().getName())
                             .email(p.getUser().getEmail())
-                            .role(p.getUser().getRole().name())
+                            .role(p.getUser().getRole() != null ? p.getUser().getRole().name() : null)
                             .participantRole(p.getParticipantRole())
                             .attendanceStatus(p.getAttendanceStatus())
                             .build())
@@ -341,8 +490,10 @@ public class MeetingService {
                 .projectTitle(meeting.getProject() != null ? meeting.getProject().getTitle() : null)
                 .departmentId(meeting.getDepartment() != null ? meeting.getDepartment().getId() : null)
                 .departmentName(meeting.getDepartment() != null ? meeting.getDepartment().getName() : null)
-                .createdById(meeting.getCreatedBy().getId())
-                .createdByName(meeting.getCreatedBy().getName())
+                .createdById(meeting.getCreatedBy() != null ? meeting.getCreatedBy().getId() : null)
+                .createdByName(meeting.getCreatedBy() != null ? meeting.getCreatedBy().getName() : null)
+                .facultyId(meeting.getFaculty() != null ? meeting.getFaculty().getId() : null)
+                .facultyName(meeting.getFaculty() != null ? meeting.getFaculty().getName() : null)
                 .participants(participantResponses)
                 .build();
     }

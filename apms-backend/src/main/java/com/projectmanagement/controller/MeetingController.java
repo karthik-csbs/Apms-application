@@ -47,6 +47,45 @@ public class MeetingController {
         return ResponseEntity.ok(new ApiResponse<>(true, "My meetings fetched successfully", response));
     }
 
+    @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'PRINCIPAL', 'HOD', 'FACULTY', 'STUDENT')")
+    public ResponseEntity<ApiResponse<PageResponse<MeetingResponse>>> getAllMeetings(
+            @AuthenticationPrincipal User currentUser,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "meetingDate") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
+        PageResponse<MeetingResponse> response = meetingService.getMyMeetings(currentUser, page, size, search, sortBy, sortDir);
+        return ResponseEntity.ok(new ApiResponse<>(true, "All meetings fetched successfully", response));
+    }
+
+    @GetMapping("/upcoming")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PRINCIPAL', 'HOD', 'FACULTY', 'STUDENT')")
+    public ResponseEntity<ApiResponse<PageResponse<MeetingResponse>>> getUpcomingMeetings(
+            @AuthenticationPrincipal User currentUser,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "meetingDate") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir) {
+        PageResponse<MeetingResponse> response = meetingService.getUpcomingMeetings(currentUser, page, size, search, sortBy, sortDir);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Upcoming meetings fetched successfully", response));
+    }
+
+    @GetMapping("/history")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PRINCIPAL', 'HOD', 'FACULTY', 'STUDENT')")
+    public ResponseEntity<ApiResponse<PageResponse<MeetingResponse>>> getHistoryMeetings(
+            @AuthenticationPrincipal User currentUser,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "meetingDate") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
+        PageResponse<MeetingResponse> response = meetingService.getHistoryMeetings(currentUser, page, size, search, sortBy, sortDir);
+        return ResponseEntity.ok(new ApiResponse<>(true, "History meetings fetched successfully", response));
+    }
+
     @PutMapping("/{id}/cancel")
     @PreAuthorize("hasAnyRole('FACULTY', 'ADMIN', 'HOD')")
     public ResponseEntity<ApiResponse<MeetingResponse>> cancelMeeting(

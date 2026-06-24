@@ -3,7 +3,8 @@ import {
   Box, Typography, Paper, Grid, Button, Card, CardContent, Dialog,
   DialogTitle, DialogContent, DialogActions, TextField, MenuItem,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  TablePagination, InputAdornment, IconButton, Tooltip, Chip, List, ListItem, ListItemText, Checkbox
+  TablePagination, InputAdornment, IconButton, Tooltip, Chip, List, ListItemButton, ListItemText, Checkbox,
+  Snackbar, Alert
 } from '@mui/material';
 import EventIcon from '@mui/icons-material/Event';
 import SearchIcon from '@mui/icons-material/Search';
@@ -38,6 +39,8 @@ const MeetingsPage = () => {
   const [sortBy, setSortBy] = useState('meetingDate');
   const [sortDir, setSortDir] = useState('desc');
   const [loading, setLoading] = useState(false);
+  const [alert, setAlert] = useState({ open: false, message: '', severity: 'success' });
+  const closeAlert = () => setAlert(prev => ({ ...prev, open: false }));
 
   // Form Dialog State
   const [open, setOpen] = useState(false);
@@ -77,6 +80,8 @@ const MeetingsPage = () => {
       }
     } catch (err) {
       console.error('Failed to load meetings', err);
+      const errorMsg = err?.response?.data?.message || err?.message || 'Failed to load meetings';
+      setAlert({ open: true, message: errorMsg, severity: 'error' });
     } finally {
       setLoading(false);
     }
@@ -174,6 +179,8 @@ const MeetingsPage = () => {
       }
     } catch (err) {
       console.error('Failed to schedule meeting', err);
+      const errorMsg = err?.response?.data?.message || err?.message || 'Failed to schedule meeting';
+      setAlert({ open: true, message: errorMsg, severity: 'error' });
     }
   };
 
@@ -201,6 +208,8 @@ const MeetingsPage = () => {
         loadMeetings();
       } catch (err) {
         console.error('Failed to cancel meeting', err);
+        const errorMsg = err?.response?.data?.message || err?.message || 'Failed to cancel meeting';
+        setAlert({ open: true, message: errorMsg, severity: 'error' });
       }
     }
   };
@@ -346,7 +355,7 @@ const MeetingsPage = () => {
       </TableContainer>
 
       {/* Schedule Meeting Dialog */}
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md" disableRestoreFocus disableEnforceFocus>
         <DialogTitle sx={{ fontWeight: 600 }}>Schedule Targeted Meeting</DialogTitle>
         <DialogContent dividers>
           <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
@@ -401,7 +410,7 @@ const MeetingsPage = () => {
                 <Typography variant="subtitle2" gutterBottom>Select Recipients</Typography>
                 <List dense>
                   {dropdownUsers.map((u) => (
-                    <ListItem key={u.userId} button onClick={() => handleSelectUser(u.userId)}>
+                    <ListItemButton key={u.userId} onClick={() => handleSelectUser(u.userId)}>
                       <Checkbox
                         edge="start"
                         checked={form.participantIds.includes(u.userId)}
@@ -409,7 +418,7 @@ const MeetingsPage = () => {
                         disableRipple
                       />
                       <ListItemText primary={u.name} secondary={u.email} />
-                    </ListItem>
+                    </ListItemButton>
                   ))}
                 </List>
               </Paper>
@@ -503,6 +512,12 @@ const MeetingsPage = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Snackbar open={alert.open} autoHideDuration={6000} onClose={closeAlert} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
+        <Alert onClose={closeAlert} severity={alert.severity} sx={{ width: '100%' }}>
+          {alert.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

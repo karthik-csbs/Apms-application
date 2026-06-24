@@ -191,7 +191,8 @@ public class SecurityConfig {
 
         configuration.setExposedHeaders(
                 List.of(
-                        "Authorization"
+                        "Authorization",
+                        "Content-Disposition"
                 )
         );
 

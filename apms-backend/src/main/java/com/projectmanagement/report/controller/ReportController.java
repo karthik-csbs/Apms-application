@@ -25,6 +25,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Tag(name = "Reporting & Export", description = "Endpoints for generating reports and exports")
 @PreAuthorize("hasAnyRole('ADMIN', 'PRINCIPAL', 'HOD', 'FACULTY')")
+@lombok.extern.slf4j.Slf4j
 public class ReportController {
 
     private final ReportService reportService;
@@ -67,6 +68,7 @@ public class ReportController {
 
     @GetMapping("/project/export/pdf")
     public ResponseEntity<Resource> exportProjectPdf(ReportRequestDto request, @AuthenticationPrincipal User user) {
+        log.info("EXPORT ENDPOINT HIT - PDF");
         List<ProjectReportDto> data = reportService.generateProjectReport(request, user);
         byte[] bytes = reportService.exportPdf(ReportType.PROJECT, data);
         return createFileResponse(bytes, "project-report-" + LocalDate.now() + ".pdf", "application/pdf");
@@ -74,6 +76,7 @@ public class ReportController {
 
     @GetMapping("/project/export/excel")
     public ResponseEntity<Resource> exportProjectExcel(ReportRequestDto request, @AuthenticationPrincipal User user) {
+        log.info("EXPORT ENDPOINT HIT - EXCEL");
         List<ProjectReportDto> data = reportService.generateProjectReport(request, user);
         byte[] bytes = reportService.exportExcel(ReportType.PROJECT, data);
         return createFileResponse(bytes, "project-report-" + LocalDate.now() + ".xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
@@ -81,6 +84,7 @@ public class ReportController {
 
     @GetMapping("/project/export/csv")
     public ResponseEntity<Resource> exportProjectCsv(ReportRequestDto request, @AuthenticationPrincipal User user) {
+        log.info("EXPORT ENDPOINT HIT - CSV");
         List<ProjectReportDto> data = reportService.generateProjectReport(request, user);
         byte[] bytes = reportService.exportCsv(ReportType.PROJECT, data);
         return createFileResponse(bytes, "project-report-" + LocalDate.now() + ".csv", "text/csv");

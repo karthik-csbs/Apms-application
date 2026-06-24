@@ -125,7 +125,7 @@
 				<reportElement x="430" y="0" width="90" height="20" uuid="45f17cc9-66c3-4d67-93cf-619bf1f62c65"/>
 				<box><pen lineWidth="0.5"/></box>
 				<textElement textAlignment="Center" verticalAlignment="Middle"/>
-				<textFieldExpression><![CDATA[$F{reviewDate} != null ? java.lang.String.format("%tF %tR", java.sql.Timestamp.valueOf($F{reviewDate})) : ""]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{reviewDate} != null ? $F{reviewDate}.format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) : ""]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
 				<reportElement x="520" y="0" width="50" height="20" uuid="45017cc9-66c3-4d67-93cf-619bf1f62c65"/>

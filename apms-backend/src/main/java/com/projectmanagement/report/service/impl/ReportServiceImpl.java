@@ -2,6 +2,7 @@ package com.projectmanagement.report.service.impl;
 
 import com.projectmanagement.entity.*;
 import com.projectmanagement.exception.ResourceNotFoundException;
+import com.projectmanagement.exception.ReportDataNotFoundException;
 import com.projectmanagement.repository.*;
 import com.projectmanagement.report.dto.*;
 import com.projectmanagement.report.export.CsvExportUtil;
@@ -251,7 +252,21 @@ public class ReportServiceImpl implements ReportService {
         }
         
         if (request.getStatus() != null) {
-            query.setParameter("status", request.getStatus());
+            // Determine if query is for Project or WorkflowStage
+            String queryStr = query.unwrap(org.hibernate.query.Query.class).getQueryString();
+            if (queryStr.contains("WorkflowStage ws")) {
+                try {
+                    query.setParameter("status", WorkflowStageStatus.valueOf(request.getStatus()));
+                } catch (IllegalArgumentException e) {
+                    query.setParameter("status", null);
+                }
+            } else {
+                try {
+                    query.setParameter("status", ProjectStatus.valueOf(request.getStatus()));
+                } catch (IllegalArgumentException e) {
+                    query.setParameter("status", null);
+                }
+            }
         }
 
         if (request.getFromDate() != null) {
@@ -264,6 +279,9 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public byte[] exportPdf(ReportType type, List<?> data) {
+        if (data == null || data.isEmpty()) {
+            throw new ReportDataNotFoundException("No report data available");
+        }
         try {
             return PdfExportUtil.exportToPdf(type, data);
         } catch (Exception e) {
@@ -274,6 +292,9 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public byte[] exportExcel(ReportType type, List<?> data) {
+        if (data == null || data.isEmpty()) {
+            throw new ReportDataNotFoundException("No report data available");
+        }
         try {
             return ExcelExportUtil.exportToExcel(type, data);
         } catch (IOException e) {
@@ -284,6 +305,9 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public byte[] exportCsv(ReportType type, List<?> data) {
+        if (data == null || data.isEmpty()) {
+            throw new ReportDataNotFoundException("No report data available");
+        }
         try {
             return CsvExportUtil.exportToCsv(type, data);
         } catch (IOException e) {

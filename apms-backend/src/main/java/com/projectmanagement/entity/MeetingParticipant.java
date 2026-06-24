@@ -19,6 +19,7 @@ public class MeetingParticipant {
     @JoinColumn(name = "meeting_id", nullable = false)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Meeting meeting;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -20,10 +20,12 @@ public class DatabaseSeeder implements CommandLineRunner {
     private final FacultyRepository facultyRepository;
     private final StudentRepository studentRepository;
     private final PasswordEncoder passwordEncoder;
+    private final com.projectmanagement.repository.MeetingRepository meetingRepository;
 
     @Override
     @Transactional
     public void run(String... args) {
+        meetingRepository.deleteMeetingsWithNullFaculty();
 
         if (userRepository.count() > 0) {
             // Ensure existing students are associated with the seeded faculty guide
