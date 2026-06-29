@@ -92,4 +92,13 @@ public class FacultyStudentController {
         String temporaryPassword = facultyStudentService.resetPassword(id, user);
         return ResponseEntity.ok(new ApiResponse<>(true, "Password reset successfully", temporaryPassword));
     }
+
+    @PostMapping("/{id}/resend-credentials")
+    @Operation(summary = "Resend credentials to Student email")
+    public ResponseEntity<ApiResponse<FacultyStudentResponseDto>> resendCredentials(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User user) {
+        FacultyStudentResponseDto response = facultyStudentService.resendCredentials(id, user);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Credentials resend operation completed", response));
+    }
 }

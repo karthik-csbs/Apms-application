@@ -15,4 +15,5 @@ public interface FacultyStudentService {
     FacultyStudentDto updateStudent(Long id, FacultyStudentCreateDto request, User user);
     void deactivateStudent(Long id, User user);
     String resetPassword(Long id, User user);
+    FacultyStudentResponseDto resendCredentials(Long id, User user);
 }

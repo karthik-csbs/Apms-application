@@ -38,6 +38,7 @@ public class FacultyStudentServiceImpl implements FacultyStudentService {
     private final ProjectRepository projectRepository;
     private final PasswordEncoder passwordEncoder;
     private final EntityManager entityManager;
+    private final com.projectmanagement.notification.service.EmailService emailService;
 
     @Override
     @Transactional
@@ -87,10 +88,23 @@ public class FacultyStudentServiceImpl implements FacultyStudentService {
             projectRepository.save(project);
         }
 
+        boolean emailSent = false;
+        try {
+            emailService.sendCredentialEmail(student.getName(), student.getEmail(), student.getEmail(), rawPassword);
+            student.setEmailDeliveryStatus("SUCCESS");
+            emailSent = true;
+        } catch (Exception e) {
+            student.setEmailDeliveryStatus("FAILED");
+        }
+        student.setLastCredentialEmailSent(java.time.LocalDateTime.now());
+        userRepository.save(student);
+
         return FacultyStudentResponseDto.builder()
                 .studentId(student.getId())
                 .username(student.getEmail())
                 .temporaryPassword(rawPassword)
+                .emailSent(emailSent)
+                .studentEmail(student.getEmail())
                 .build();
     }
 
@@ -176,6 +190,8 @@ public class FacultyStudentServiceImpl implements FacultyStudentService {
                     .projectTitle(proj != null ? proj.getTitle() : null)
                     .enabled(st.isEnabled())
                     .createdAt(st.getCreatedAt())
+                    .lastCredentialEmailSent(st.getLastCredentialEmailSent())
+                    .emailDeliveryStatus(st.getEmailDeliveryStatus())
                     .build();
         }).collect(Collectors.toList());
 
@@ -238,6 +254,8 @@ public class FacultyStudentServiceImpl implements FacultyStudentService {
                     .projectTitle(proj != null ? proj.getTitle() : null)
                     .enabled(st.isEnabled())
                     .createdAt(st.getCreatedAt())
+                    .lastCredentialEmailSent(st.getLastCredentialEmailSent())
+                    .emailDeliveryStatus(st.getEmailDeliveryStatus())
                     .build();
         }).collect(Collectors.toList());
     }
@@ -265,6 +283,8 @@ public class FacultyStudentServiceImpl implements FacultyStudentService {
                 .projectTitle(proj != null ? proj.getTitle() : null)
                 .enabled(student.isEnabled())
                 .createdAt(student.getCreatedAt())
+                .lastCredentialEmailSent(student.getLastCredentialEmailSent())
+                .emailDeliveryStatus(student.getEmailDeliveryStatus())
                 .build();
     }
 
@@ -318,6 +338,8 @@ public class FacultyStudentServiceImpl implements FacultyStudentService {
                 .projectTitle(proj != null ? proj.getTitle() : null)
                 .enabled(student.isEnabled())
                 .createdAt(student.getCreatedAt())
+                .lastCredentialEmailSent(student.getLastCredentialEmailSent())
+                .emailDeliveryStatus(student.getEmailDeliveryStatus())
                 .build();
     }
 
@@ -440,5 +462,36 @@ public class FacultyStudentServiceImpl implements FacultyStudentService {
             result.append(c);
         }
         return result.toString();
+    }
+
+    @Override
+    @Transactional
+    public FacultyStudentResponseDto resendCredentials(Long id, User user) {
+        Student student = studentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Student not found with id: " + id));
+
+        validateAccess(student, user);
+
+        String newPassword = generateSecurePassword();
+        student.setPassword(passwordEncoder.encode(newPassword));
+
+        boolean emailSent = false;
+        try {
+            emailService.sendCredentialEmail(student.getName(), student.getEmail(), student.getEmail(), newPassword);
+            student.setEmailDeliveryStatus("SUCCESS");
+            emailSent = true;
+        } catch (Exception e) {
+            student.setEmailDeliveryStatus("FAILED");
+        }
+        student.setLastCredentialEmailSent(java.time.LocalDateTime.now());
+        userRepository.save(student);
+
+        return FacultyStudentResponseDto.builder()
+                .studentId(student.getId())
+                .username(student.getEmail())
+                .temporaryPassword(newPassword)
+                .emailSent(emailSent)
+                .studentEmail(student.getEmail())
+                .build();
     }
 }

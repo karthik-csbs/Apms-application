@@ -50,5 +50,10 @@ export const studentService = {
   facultyResetPassword: async (id) => {
     const response = await api.post(`/faculty/students/${id}/reset-password`);
     return response?.data?.data ?? response.data;
+  },
+
+  facultyResendCredentials: async (id) => {
+    const response = await api.post(`/faculty/students/${id}/resend-credentials`);
+    return response?.data?.data ?? response.data;
   }
 };

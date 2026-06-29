@@ -41,3 +41,7 @@ ALTER TABLE notifications ADD CONSTRAINT fk_notifications_student FOREIGN KEY (s
 
 ALTER TABLE notifications DROP CONSTRAINT IF EXISTS fk_notifications_project;
 ALTER TABLE notifications ADD CONSTRAINT fk_notifications_project FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE SET NULL;
+
+-- 4. Upgrades to students table for Credential Email Audit
+ALTER TABLE students ADD COLUMN IF NOT EXISTS last_credential_email_sent TIMESTAMP;
+ALTER TABLE students ADD COLUMN IF NOT EXISTS email_delivery_status VARCHAR(50);

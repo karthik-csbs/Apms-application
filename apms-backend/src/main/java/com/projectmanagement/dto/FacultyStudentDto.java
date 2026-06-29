@@ -22,4 +22,6 @@ public class FacultyStudentDto {
     private String projectTitle;
     private boolean enabled;
     private LocalDateTime createdAt;
+    private LocalDateTime lastCredentialEmailSent;
+    private String emailDeliveryStatus;
 }

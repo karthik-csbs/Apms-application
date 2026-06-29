@@ -129,7 +129,9 @@ export default function CreateStudents() {
       const result = await studentService.facultyCreateStudent(payload);
       setCreatedCredentials({
         username: result.username,
-        password: result.temporaryPassword
+        password: result.temporaryPassword,
+        emailSent: result.emailSent,
+        studentEmail: result.studentEmail
       });
       setShowCreateModal(false);
       setShowSuccessDialog(true);
@@ -205,6 +207,28 @@ export default function CreateStudents() {
     }
   }
 
+  // ---------------------------------------------------------------------------
+  async function handleResendCredentials(student) {
+    if (!window.confirm(`Resend login credentials to "${student.name}" (${student.email})?`)) {
+      return;
+    }
+    setLoading(true);
+    setError("");
+    setSuccess("");
+    try {
+      const result = await studentService.facultyResendCredentials(student.id);
+      if (result.emailSent) {
+        setSuccess(`✅ Credentials have been sent to: ${student.email}`);
+      } else {
+        setError("Student account created successfully. Email delivery failed. Please use Resend Credentials.");
+      }
+    } catch (err) {
+      setError(err?.response?.data?.message || err.message || "Failed to resend credentials.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   function handleOpenEdit(student) {
     setSelectedStudent(student);
     setForm({
@@ -235,6 +259,46 @@ export default function CreateStudents() {
   // ===========================================================================
   return (
     <div style={s.page}>
+      <style>{`
+        .desktop-only {
+          display: block;
+        }
+        .mobile-only {
+          display: none;
+        }
+        .mobile-card {
+          background: #fff;
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          padding: 16px;
+          margin-bottom: 16px;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .mobile-card-row {
+          display: flex;
+          justify-content: space-between;
+          padding: 8px 0;
+          border-bottom: 1px solid #f1f5f9;
+          font-size: 13px;
+        }
+        .mobile-card-row:last-of-type {
+          border-bottom: none;
+        }
+        .mobile-card-actions {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-top: 12px;
+        }
+        @media (max-width: 767px) {
+          .desktop-only {
+            display: none !important;
+          }
+          .mobile-only {
+            display: block !important;
+          }
+        }
+      `}</style>
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div style={s.header}>
@@ -279,63 +343,112 @@ export default function CreateStudents() {
             <p>No students found. Click <strong>+ Create Student</strong> to add one.</p>
           </div>
         ) : (
-          <div style={{ overflowX: "auto" }}>
-            <table style={s.table}>
-              <thead>
-                <tr>
-                  <th style={s.th}>S.No</th>
-                  <th style={{ ...s.th, cursor: "pointer" }} onClick={() => { setSortBy("registerNumber"); setSortDir(p => p === "asc" ? "desc" : "asc"); }}>
-                    Register No. {sortBy === "registerNumber" ? (sortDir === "asc" ? "▲" : "▼") : ""}
-                  </th>
-                  <th style={{ ...s.th, cursor: "pointer" }} onClick={() => { setSortBy("name"); setSortDir(p => p === "asc" ? "desc" : "asc"); }}>
-                    Name {sortBy === "name" ? (sortDir === "asc" ? "▲" : "▼") : ""}
-                  </th>
-                  <th style={{ ...s.th, cursor: "pointer" }} onClick={() => { setSortBy("email"); setSortDir(p => p === "asc" ? "desc" : "asc"); }}>
-                    Email {sortBy === "email" ? (sortDir === "asc" ? "▲" : "▼") : ""}
-                  </th>
-                  <th style={s.th}>Department</th>
-                  <th style={s.th}>Project</th>
-                  <th style={s.th}>Status</th>
-                  <th style={s.th}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {students.map((st, i) => {
-                  const sNo = page * size + i + 1;
-                  return (
-                    <tr key={st.id} style={{ background: i % 2 === 0 ? "#fff" : "#fafafa" }}>
-                      <td style={s.td}>{sNo}</td>
-                      <td style={s.td}>
-                        <span style={s.badge}>{st.registerNumber}</span>
-                      </td>
-                      <td style={{ ...s.td, fontWeight: 600 }}>{st.name}</td>
-                      <td style={s.td}>{st.email}</td>
-                      <td style={s.td}>{st.departmentName || deptLabel(st.departmentId)}</td>
-                      <td style={s.td}>{st.projectTitle || "—"}</td>
-                      <td style={s.td}>
-                        <span style={{
-                          ...s.statusBadge,
-                          background: st.enabled ? "#e6f4ea" : "#fce8e6",
-                          color: st.enabled ? "#137333" : "#c5221f"
-                        }}>
-                          {st.enabled ? "Active" : "Deactivated"}
-                        </span>
-                      </td>
-                      <td style={s.td}>
-                        <div style={s.actionsContainer}>
-                          <button style={s.actionLink} onClick={() => handleOpenView(st)}>View</button>
-                          <button style={s.actionLink} onClick={() => handleOpenEdit(st)}>Edit</button>
-                          <button style={s.actionLink} onClick={() => handleResetPassword(st)}>Reset Password</button>
-                          {st.enabled && (
-                            <button style={{ ...s.actionLink, color: "#d93025" }} onClick={() => handleDeactivate(st)}>Deactivate</button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          <>
+            <div style={{ overflowX: "auto" }} className="desktop-only">
+              <table style={s.table}>
+                <thead>
+                  <tr>
+                    <th style={s.th}>S.No</th>
+                    <th style={{ ...s.th, cursor: "pointer" }} onClick={() => { setSortBy("registerNumber"); setSortDir(p => p === "asc" ? "desc" : "asc"); }}>
+                      Register No. {sortBy === "registerNumber" ? (sortDir === "asc" ? "▲" : "▼") : ""}
+                    </th>
+                    <th style={{ ...s.th, cursor: "pointer" }} onClick={() => { setSortBy("name"); setSortDir(p => p === "asc" ? "desc" : "asc"); }}>
+                      Name {sortBy === "name" ? (sortDir === "asc" ? "▲" : "▼") : ""}
+                    </th>
+                    <th style={{ ...s.th, cursor: "pointer" }} onClick={() => { setSortBy("email"); setSortDir(p => p === "asc" ? "desc" : "asc"); }}>
+                      Email {sortBy === "email" ? (sortDir === "asc" ? "▲" : "▼") : ""}
+                    </th>
+                    <th style={s.th}>Department</th>
+                    <th style={s.th}>Project</th>
+                    <th style={s.th}>Status</th>
+                    <th style={s.th}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {students.map((st, i) => {
+                    const sNo = page * size + i + 1;
+                    return (
+                      <tr key={st.id} style={{ background: i % 2 === 0 ? "#fff" : "#fafafa" }}>
+                        <td style={s.td}>{sNo}</td>
+                        <td style={s.td}>
+                          <span style={s.badge}>{st.registerNumber}</span>
+                        </td>
+                        <td style={{ ...s.td, fontWeight: 600 }}>{st.name}</td>
+                        <td style={s.td}>{st.email}</td>
+                        <td style={s.td}>{st.departmentName || deptLabel(st.departmentId)}</td>
+                        <td style={s.td}>{st.projectTitle || "—"}</td>
+                        <td style={s.td}>
+                          <span style={{
+                            ...s.statusBadge,
+                            background: st.enabled ? "#e6f4ea" : "#fce8e6",
+                            color: st.enabled ? "#137333" : "#c5221f"
+                          }}>
+                            {st.enabled ? "Active" : "Deactivated"}
+                          </span>
+                        </td>
+                        <td style={s.td}>
+                          <div style={s.actionsContainer}>
+                            <button style={s.btnView} onClick={() => handleOpenView(st)}>View</button>
+                            <button style={s.btnEdit} onClick={() => handleOpenEdit(st)}>Edit</button>
+                            <button style={s.btnReset} onClick={() => handleResetPassword(st)}>Reset Password</button>
+                            {st.enabled && (
+                              <button style={s.btnResend} onClick={() => handleResendCredentials(st)}>Resend Credentials</button>
+                            )}
+                            {st.enabled && (
+                              <button style={s.btnDeactivate} onClick={() => handleDeactivate(st)}>Deactivate</button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="mobile-only" style={{ display: "none" }}>
+              {students.map((st, i) => (
+                <div key={st.id} className="mobile-card">
+                  <div className="mobile-card-row">
+                    <strong>Register No:</strong>
+                    <span style={s.badge}>{st.registerNumber}</span>
+                  </div>
+                  <div className="mobile-card-row">
+                    <strong>Student Name:</strong>
+                    <span style={{ fontWeight: 600 }}>{st.name}</span>
+                  </div>
+                  <div className="mobile-card-row">
+                    <strong>Email:</strong>
+                    <span>{st.email}</span>
+                  </div>
+                  <div className="mobile-card-row">
+                    <strong>Department:</strong>
+                    <span>{st.departmentName || deptLabel(st.departmentId)}</span>
+                  </div>
+                  <div className="mobile-card-row">
+                    <strong>Status:</strong>
+                    <span style={{
+                      ...s.statusBadge,
+                      background: st.enabled ? "#e6f4ea" : "#fce8e6",
+                      color: st.enabled ? "#137333" : "#c5221f"
+                    }}>
+                      {st.enabled ? "Active" : "Deactivated"}
+                    </span>
+                  </div>
+                  <div className="mobile-card-actions">
+                    <button style={s.btnView} onClick={() => handleOpenView(st)}>View</button>
+                    <button style={s.btnEdit} onClick={() => handleOpenEdit(st)}>Edit</button>
+                    <button style={s.btnReset} onClick={() => handleResetPassword(st)}>Reset Password</button>
+                    {st.enabled && (
+                      <button style={s.btnResend} onClick={() => handleResendCredentials(st)}>Resend Credentials</button>
+                    )}
+                    {st.enabled && (
+                      <button style={s.btnDeactivate} onClick={() => handleDeactivate(st)}>Deactivate</button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
 
             {/* Pagination Controls */}
             <div style={s.pagination}>
@@ -357,7 +470,7 @@ export default function CreateStudents() {
                 Next
               </button>
             </div>
-          </div>
+          </>
         )}
       </div>
 
@@ -520,6 +633,24 @@ export default function CreateStudents() {
               <div style={s.detailRow}><strong>Department:</strong> {selectedStudent.departmentName || deptLabel(selectedStudent.departmentId)}</div>
               <div style={s.detailRow}><strong>Assigned Project:</strong> {selectedStudent.projectTitle || "No project assigned"}</div>
               <div style={s.detailRow}><strong>Status:</strong> {selectedStudent.enabled ? "Active" : "Deactivated"}</div>
+              <div style={s.detailRow}>
+                <strong>Email Delivery Status:</strong>{" "}
+                {selectedStudent.emailDeliveryStatus === "SUCCESS" ? (
+                  <span style={{ color: "#137333", fontWeight: 600, background: "#e6f4ea", padding: "2px 8px", borderRadius: 4, fontSize: 12 }}>Email Sent</span>
+                ) : selectedStudent.emailDeliveryStatus === "FAILED" ? (
+                  <span style={{ color: "#c5221f", fontWeight: 600, background: "#fce8e6", padding: "2px 8px", borderRadius: 4, fontSize: 12 }}>Email Failed</span>
+                ) : (
+                  <span style={{ color: "#5f6368", fontWeight: 600, background: "#f1f3f4", padding: "2px 8px", borderRadius: 4, fontSize: 12 }}>Pending</span>
+                )}
+              </div>
+              <div style={s.detailRow}>
+                <strong>Last Email Sent Date:</strong>{" "}
+                {selectedStudent.lastCredentialEmailSent ? (
+                  new Date(selectedStudent.lastCredentialEmailSent).toLocaleString()
+                ) : (
+                  "—"
+                )}
+              </div>
             </div>
             <div style={s.formActions}>
               <button style={s.secondaryBtn} onClick={() => setShowViewModal(false)}>Close</button>
@@ -531,28 +662,43 @@ export default function CreateStudents() {
       {/* ── Success Credentials Dialog ─────────────────────────────────────────── */}
       {showSuccessDialog && createdCredentials && (
         <div style={s.modalOverlay}>
-          <div style={{ ...s.modalContent, borderTop: "4px solid #137333" }}>
-            <h2 style={{ ...s.modalTitle, color: "#137333" }}>🎉 Student Created Successfully</h2>
-            <p style={{ fontSize: 13, color: "#5f6368", marginBottom: 16 }}>
-              Please copy these temporary login credentials to share with the student. The password is encrypted securely on the server.
-            </p>
-            <div style={s.credentialsCard}>
-              <div style={s.credField}>
-                <strong>Username (Email):</strong>
-                <code style={s.codeBlock}>{createdCredentials.username}</code>
-              </div>
-              <div style={s.credField}>
-                <strong>Temporary Password:</strong>
-                <code style={s.codeBlock}>{createdCredentials.password}</code>
-              </div>
-            </div>
+          <div style={{ ...s.modalContent, borderTop: createdCredentials.emailSent ? "4px solid #137333" : "4px solid #ea4335" }}>
+            <h2 style={{ ...s.modalTitle, color: createdCredentials.emailSent ? "#137333" : "#ea4335" }}>
+              {createdCredentials.emailSent ? "🎉 Student Created Successfully" : "⚠ Email Delivery Failed"}
+            </h2>
+            
+            {createdCredentials.emailSent ? (
+              <>
+                <p style={{ fontSize: 14, color: "#3c4043", marginBottom: 8, fontWeight: 500 }}>
+                  Student account created successfully.
+                </p>
+                <p style={{ fontSize: 14, color: "#3c4043", marginBottom: 16 }}>
+                  Credentials have been sent to the student's email address.
+                </p>
+              </>
+            ) : (
+              <>
+                <p style={{ fontSize: 14, color: "#ea4335", fontWeight: "bold", marginBottom: 8 }}>
+                  Student account created.
+                </p>
+                <p style={{ fontSize: 14, color: "#ea4335", fontWeight: "bold", marginBottom: 16 }}>
+                  Email delivery failed.
+                </p>
+              </>
+            )}
+
             <div style={s.formActions}>
-              <button
-                style={s.primaryBtn}
-                onClick={() => copyToClipboard(`Username: ${createdCredentials.username}\nPassword: ${createdCredentials.password}`)}
-              >
-                Copy Credentials
-              </button>
+              {!createdCredentials.emailSent && (
+                <button
+                  style={s.primaryBtn}
+                  onClick={async () => {
+                    setShowSuccessDialog(false);
+                    await handleResendCredentials({ id: createdCredentials.studentId, name: createdCredentials.username, email: createdCredentials.studentEmail });
+                  }}
+                >
+                  Resend Credentials
+                </button>
+              )}
               <button style={s.secondaryBtn} onClick={() => setShowSuccessDialog(false)}>
                 Done
               </button>
@@ -631,6 +777,11 @@ const s = {
 
   actionsContainer: { display: "flex", gap: 10, flexWrap: "wrap" },
   actionLink: { background: "none", border: "none", color: "#0056b3", textDecoration: "underline", cursor: "pointer", fontSize: 13, padding: 0 },
+  btnView: { background: "#f1f5f9", color: "#0f172a", border: "1px solid #cbd5e1", borderRadius: 6, padding: "5px 10px", fontSize: 12, fontWeight: 600, cursor: "pointer", transition: "all 0.2s" },
+  btnEdit: { background: "#e0f2fe", color: "#0369a1", border: "none", borderRadius: 6, padding: "5px 10px", fontSize: 12, fontWeight: 600, cursor: "pointer", transition: "all 0.2s" },
+  btnReset: { background: "#fef3c7", color: "#b45309", border: "none", borderRadius: 6, padding: "5px 10px", fontSize: 12, fontWeight: 600, cursor: "pointer", transition: "all 0.2s" },
+  btnResend: { background: "#f0fdf4", color: "#15803d", border: "none", borderRadius: 6, padding: "5px 10px", fontSize: 12, fontWeight: 600, cursor: "pointer", transition: "all 0.2s" },
+  btnDeactivate: { background: "#fee2e2", color: "#b91c1c", border: "none", borderRadius: 6, padding: "5px 10px", fontSize: 12, fontWeight: 600, cursor: "pointer", transition: "all 0.2s" },
 
   empty: { textAlign: "center", padding: "48px 20px", color: "#64748b", fontSize: 14 },
 

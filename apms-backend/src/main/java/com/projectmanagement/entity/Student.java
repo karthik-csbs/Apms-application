@@ -39,4 +39,9 @@ public class Student extends User {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Faculty faculty;
+
+    private java.time.LocalDateTime lastCredentialEmailSent;
+
+    @Column(length = 50)
+    private String emailDeliveryStatus;
 }

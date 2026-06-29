@@ -13,4 +13,6 @@ public class FacultyStudentResponseDto {
     private Long studentId;
     private String username;
     private String temporaryPassword;
+    private boolean emailSent;
+    private String studentEmail;
 }
