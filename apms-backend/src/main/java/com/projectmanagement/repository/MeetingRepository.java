@@ -13,9 +13,13 @@ import java.time.LocalDate;
 public interface MeetingRepository extends JpaRepository<Meeting, Long> {
 
     @Query("SELECT DISTINCT m FROM Meeting m " +
+           "LEFT JOIN FETCH m.project p " +
+           "LEFT JOIN FETCH m.department d " +
+           "LEFT JOIN FETCH m.createdBy c " +
+           "LEFT JOIN FETCH m.faculty f " +
            "WHERE (:today IS NULL OR m.meetingDate >= :today) " +
            "AND (:todayPast IS NULL OR m.meetingDate < :todayPast) " +
-           "AND (:search IS NULL OR LOWER(m.title) LIKE LOWER(CONCAT('%', :search, '%')) " +
+           "AND (:search IS NULL OR :search = '' OR LOWER(m.title) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "OR LOWER(m.description) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "OR LOWER(m.location) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<Meeting> findAllMeetings(
@@ -26,10 +30,14 @@ public interface MeetingRepository extends JpaRepository<Meeting, Long> {
     );
 
     @Query("SELECT DISTINCT m FROM Meeting m " +
+           "LEFT JOIN FETCH m.project p " +
+           "LEFT JOIN FETCH m.department d " +
+           "LEFT JOIN FETCH m.createdBy c " +
+           "LEFT JOIN FETCH m.faculty f " +
            "WHERE (m.department.id = :deptId OR m.createdBy.id = :userId) " +
            "AND (:today IS NULL OR m.meetingDate >= :today) " +
            "AND (:todayPast IS NULL OR m.meetingDate < :todayPast) " +
-           "AND (:search IS NULL OR LOWER(m.title) LIKE LOWER(CONCAT('%', :search, '%')) " +
+           "AND (:search IS NULL OR :search = '' OR LOWER(m.title) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "OR LOWER(m.description) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "OR LOWER(m.location) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<Meeting> findMeetingsForHod(
@@ -42,12 +50,15 @@ public interface MeetingRepository extends JpaRepository<Meeting, Long> {
     );
 
     @Query("SELECT DISTINCT m FROM Meeting m " +
-           "LEFT JOIN m.participants mp " +
-           "LEFT JOIN m.project p " +
+           "LEFT JOIN FETCH m.participants mp " +
+           "LEFT JOIN FETCH m.project p " +
+           "LEFT JOIN FETCH m.department d " +
+           "LEFT JOIN FETCH m.createdBy c " +
+           "LEFT JOIN FETCH m.faculty f " +
            "WHERE (m.createdBy.id = :userId OR mp.user.id = :userId OR p.facultyGuide.id = :userId) " +
            "AND (:today IS NULL OR m.meetingDate >= :today) " +
            "AND (:todayPast IS NULL OR m.meetingDate < :todayPast) " +
-           "AND (:search IS NULL OR LOWER(m.title) LIKE LOWER(CONCAT('%', :search, '%')) " +
+           "AND (:search IS NULL OR :search = '' OR LOWER(m.title) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "OR LOWER(m.description) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "OR LOWER(m.location) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<Meeting> findMeetingsForFaculty(
@@ -59,13 +70,16 @@ public interface MeetingRepository extends JpaRepository<Meeting, Long> {
     );
 
     @Query("SELECT DISTINCT m FROM Meeting m " +
-           "LEFT JOIN m.participants mp " +
-           "LEFT JOIN m.project p " +
+           "LEFT JOIN FETCH m.participants mp " +
+           "LEFT JOIN FETCH m.project p " +
+           "LEFT JOIN FETCH m.department d " +
+           "LEFT JOIN FETCH m.createdBy c " +
+           "LEFT JOIN FETCH m.faculty f " +
            "LEFT JOIN p.teamMembers pt " +
            "WHERE (mp.user.id = :userId OR pt.student.id = :userId) " +
            "AND (:today IS NULL OR m.meetingDate >= :today) " +
            "AND (:todayPast IS NULL OR m.meetingDate < :todayPast) " +
-           "AND (:search IS NULL OR LOWER(m.title) LIKE LOWER(CONCAT('%', :search, '%')) " +
+           "AND (:search IS NULL OR :search = '' OR LOWER(m.title) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "OR LOWER(m.description) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "OR LOWER(m.location) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<Meeting> findMeetingsForStudent(

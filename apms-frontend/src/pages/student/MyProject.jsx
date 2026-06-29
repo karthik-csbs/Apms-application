@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
-import { yupResolver } from '@hookform/resolvers/yup';
+import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
 import { 
   Box, Typography, Button, Paper, Grid, CircularProgress, 
   Snackbar, Alert, Card, CardContent, Divider, TextField, Chip 

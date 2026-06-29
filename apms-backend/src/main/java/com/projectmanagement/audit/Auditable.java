@@ -32,7 +32,7 @@ public abstract class Auditable {
             nullable = false,
             updatable = false
     )
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     // =====================================================
     // UPDATED DATE
@@ -40,7 +40,7 @@ public abstract class Auditable {
 
     @LastModifiedDate
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    private LocalDateTime updatedAt = LocalDateTime.now();
 
     // =====================================================
     // CREATED BY

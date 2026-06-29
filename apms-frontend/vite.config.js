@@ -7,6 +7,11 @@ export default defineConfig({
   server: {
     port: 3000,
     open: true,
+    host: true,
+    strictPort: true,
+    hmr: {
+      clientPort: 3000,
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:8081',
@@ -20,3 +25,4 @@ export default defineConfig({
     minify: 'terser',
   },
 })
+
