@@ -15,4 +15,5 @@ public class FacultyStudentResponseDto {
     private String temporaryPassword;
     private boolean emailSent;
     private String studentEmail;
+    private String studentName;
 }

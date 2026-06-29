@@ -128,10 +128,11 @@ export default function CreateStudents() {
 
       const result = await studentService.facultyCreateStudent(payload);
       setCreatedCredentials({
+        studentId: result.studentId,
+        studentName: result.studentName,
+        studentEmail: result.studentEmail,
         username: result.username,
-        password: result.temporaryPassword,
-        emailSent: result.emailSent,
-        studentEmail: result.studentEmail
+        password: result.temporaryPassword
       });
       setShowCreateModal(false);
       setShowSuccessDialog(true);
@@ -217,11 +218,23 @@ export default function CreateStudents() {
     setSuccess("");
     try {
       const result = await studentService.facultyResendCredentials(student.id);
-      if (result.emailSent) {
-        setSuccess(`✅ Credentials have been sent to: ${student.email}`);
-      } else {
-        setError("Student account created successfully. Email delivery failed. Please use Resend Credentials.");
-      }
+      const subject = "APMS Student Login Credentials";
+      const body = `Dear Student,
+
+Your Academic Project Management System (APMS) account has been created successfully.
+
+Username: ${result.username}
+Password: ${result.temporaryPassword}
+
+Please log in using the above credentials.
+
+Regards,
+Faculty
+Prathyusha Engineering College`;
+
+      const mailtoUrl = `mailto:${result.studentEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      window.location.href = mailtoUrl;
+      setSuccess(`✅ Mail client opened to send credentials to: ${result.studentEmail}`);
     } catch (err) {
       setError(err?.response?.data?.message || err.message || "Failed to resend credentials.");
     } finally {
@@ -662,43 +675,46 @@ export default function CreateStudents() {
       {/* ── Success Credentials Dialog ─────────────────────────────────────────── */}
       {showSuccessDialog && createdCredentials && (
         <div style={s.modalOverlay}>
-          <div style={{ ...s.modalContent, borderTop: createdCredentials.emailSent ? "4px solid #137333" : "4px solid #ea4335" }}>
-            <h2 style={{ ...s.modalTitle, color: createdCredentials.emailSent ? "#137333" : "#ea4335" }}>
-              {createdCredentials.emailSent ? "🎉 Student Created Successfully" : "⚠ Email Delivery Failed"}
+          <div style={{ ...s.modalContent, borderTop: "4px solid #1a73e8" }}>
+            <h2 style={{ ...s.modalTitle, color: "#1a73e8" }}>
+              ✔ Student Account Created Successfully
             </h2>
             
-            {createdCredentials.emailSent ? (
-              <>
-                <p style={{ fontSize: 14, color: "#3c4043", marginBottom: 8, fontWeight: 500 }}>
-                  Student account created successfully.
-                </p>
-                <p style={{ fontSize: 14, color: "#3c4043", marginBottom: 16 }}>
-                  Credentials have been sent to the student's email address.
-                </p>
-              </>
-            ) : (
-              <>
-                <p style={{ fontSize: 14, color: "#ea4335", fontWeight: "bold", marginBottom: 8 }}>
-                  Student account created.
-                </p>
-                <p style={{ fontSize: 14, color: "#ea4335", fontWeight: "bold", marginBottom: 16 }}>
-                  Email delivery failed.
-                </p>
-              </>
-            )}
+            <p style={{ fontSize: 14, color: "#3c4043", marginBottom: 16 }}>
+              The student account has been created in the system. Use the button below to send their credentials.
+            </p>
+
+            <div style={{ background: "#f8f9fa", padding: 12, borderRadius: 8, marginBottom: 16, border: "1px solid #dadce0" }}>
+              <p style={{ margin: "4px 0", fontSize: 13 }}><strong>Name:</strong> {createdCredentials.studentName}</p>
+              <p style={{ margin: "4px 0", fontSize: 13 }}><strong>Username:</strong> {createdCredentials.username}</p>
+              <p style={{ margin: "4px 0", fontSize: 13 }}><strong>Password:</strong> {createdCredentials.password}</p>
+            </div>
 
             <div style={s.formActions}>
-              {!createdCredentials.emailSent && (
-                <button
-                  style={s.primaryBtn}
-                  onClick={async () => {
-                    setShowSuccessDialog(false);
-                    await handleResendCredentials({ id: createdCredentials.studentId, name: createdCredentials.username, email: createdCredentials.studentEmail });
-                  }}
-                >
-                  Resend Credentials
-                </button>
-              )}
+              <button
+                style={{ ...s.primaryBtn, backgroundColor: createdCredentials.studentEmail ? "#1a73e8" : "#9aa0a6" }}
+                disabled={!createdCredentials.studentEmail}
+                onClick={() => {
+                  const subject = "APMS Student Login Credentials";
+                  const body = `Dear Student,
+
+Your Academic Project Management System (APMS) account has been created successfully.
+
+Username: ${createdCredentials.username}
+Password: ${createdCredentials.password}
+
+Please log in using the above credentials.
+
+Regards,
+Faculty
+Prathyusha Engineering College`;
+
+                  const mailtoUrl = `mailto:${createdCredentials.studentEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                  window.location.href = mailtoUrl;
+                }}
+              >
+                Send Mail
+              </button>
               <button style={s.secondaryBtn} onClick={() => setShowSuccessDialog(false)}>
                 Done
               </button>

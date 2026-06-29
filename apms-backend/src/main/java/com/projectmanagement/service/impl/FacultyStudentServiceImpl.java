@@ -89,13 +89,7 @@ public class FacultyStudentServiceImpl implements FacultyStudentService {
         }
 
         boolean emailSent = false;
-        try {
-            emailService.sendCredentialEmail(student.getName(), student.getEmail(), student.getEmail(), rawPassword);
-            student.setEmailDeliveryStatus("SUCCESS");
-            emailSent = true;
-        } catch (Exception e) {
-            student.setEmailDeliveryStatus("FAILED");
-        }
+        student.setEmailDeliveryStatus("PENDING_MAILTO");
         student.setLastCredentialEmailSent(java.time.LocalDateTime.now());
         userRepository.save(student);
 
@@ -105,6 +99,7 @@ public class FacultyStudentServiceImpl implements FacultyStudentService {
                 .temporaryPassword(rawPassword)
                 .emailSent(emailSent)
                 .studentEmail(student.getEmail())
+                .studentName(student.getName())
                 .build();
     }
 
@@ -476,13 +471,7 @@ public class FacultyStudentServiceImpl implements FacultyStudentService {
         student.setPassword(passwordEncoder.encode(newPassword));
 
         boolean emailSent = false;
-        try {
-            emailService.sendCredentialEmail(student.getName(), student.getEmail(), student.getEmail(), newPassword);
-            student.setEmailDeliveryStatus("SUCCESS");
-            emailSent = true;
-        } catch (Exception e) {
-            student.setEmailDeliveryStatus("FAILED");
-        }
+        student.setEmailDeliveryStatus("PENDING_MAILTO");
         student.setLastCredentialEmailSent(java.time.LocalDateTime.now());
         userRepository.save(student);
 
@@ -492,6 +481,7 @@ public class FacultyStudentServiceImpl implements FacultyStudentService {
                 .temporaryPassword(newPassword)
                 .emailSent(emailSent)
                 .studentEmail(student.getEmail())
+                .studentName(student.getName())
                 .build();
     }
 }
