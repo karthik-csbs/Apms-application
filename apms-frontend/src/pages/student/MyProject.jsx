@@ -409,7 +409,7 @@ const MyProject = () => {
                     </Typography>
                   </Grid>
                   <Grid item xs={6} sm={4}>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2" color="text.secondary" component="div">
                       <strong>Workflow Status:</strong>{' '}
                       <Chip 
                         label={workflowData.workflowStatus} 

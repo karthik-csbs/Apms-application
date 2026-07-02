@@ -208,8 +208,8 @@ public class ReportServiceImpl implements ReportService {
     private void applyProjectFilters(StringBuilder jpql, ReportRequestDto request) {
         if (request.getDepartmentId() != null) jpql.append(" AND p.department.id = :deptId");
         if (request.getFacultyId() != null) jpql.append(" AND p.facultyGuide.id = :facultyId");
-        if (request.getProjectType() != null) jpql.append(" AND p.projectType = :projectType");
-        if (request.getStatus() != null) jpql.append(" AND p.status = :status");
+        if (request.getProjectType() != null && !request.getProjectType().trim().isEmpty()) jpql.append(" AND p.projectType = :projectType");
+        if (request.getStatus() != null && !request.getStatus().trim().isEmpty()) jpql.append(" AND p.status = :status");
         if (request.getFromDate() != null) jpql.append(" AND p.createdAt >= :fromDate");
         if (request.getToDate() != null) jpql.append(" AND p.createdAt <= :toDate");
     }
@@ -217,8 +217,8 @@ public class ReportServiceImpl implements ReportService {
     private void applyReviewFilters(StringBuilder jpql, ReportRequestDto request) {
         if (request.getDepartmentId() != null) jpql.append(" AND p.department.id = :deptId");
         if (request.getFacultyId() != null) jpql.append(" AND (ws.reviewerId = :facultyId OR p.facultyGuide.id = :facultyId)");
-        if (request.getProjectType() != null) jpql.append(" AND p.projectType = :projectType");
-        if (request.getStatus() != null) jpql.append(" AND ws.stageStatus = :status");
+        if (request.getProjectType() != null && !request.getProjectType().trim().isEmpty()) jpql.append(" AND p.projectType = :projectType");
+        if (request.getStatus() != null && !request.getStatus().trim().isEmpty()) jpql.append(" AND ws.stageStatus = :status");
         if (request.getFromDate() != null) jpql.append(" AND ws.reviewedDate >= :fromDate");
         if (request.getToDate() != null) jpql.append(" AND ws.reviewedDate <= :toDate");
     }
@@ -226,13 +226,16 @@ public class ReportServiceImpl implements ReportService {
     private void applySubmissionFilters(StringBuilder jpql, ReportRequestDto request) {
         if (request.getDepartmentId() != null) jpql.append(" AND p.department.id = :deptId");
         if (request.getFacultyId() != null) jpql.append(" AND p.facultyGuide.id = :facultyId");
-        if (request.getProjectType() != null) jpql.append(" AND p.projectType = :projectType");
-        if (request.getStatus() != null) jpql.append(" AND p.completionStatus = :status");
+        if (request.getProjectType() != null && !request.getProjectType().trim().isEmpty()) jpql.append(" AND p.projectType = :projectType");
+        if (request.getStatus() != null && !request.getStatus().trim().isEmpty()) jpql.append(" AND p.completionStatus = :status");
         if (request.getFromDate() != null) jpql.append(" AND s.submittedAt >= :fromDate");
         if (request.getToDate() != null) jpql.append(" AND s.submittedAt <= :toDate");
     }
 
     private void setFilterParameters(TypedQuery<?> query, ReportRequestDto request, User user) {
+        log.info("Setting query filter parameters. Request filters: departmentId={}, facultyId={}, projectType={}, status={}, fromDate={}, toDate={}",
+                request.getDepartmentId(), request.getFacultyId(), request.getProjectType(), request.getStatus(), request.getFromDate(), request.getToDate());
+        
         if (user.getRole() == Role.HOD) {
             Department dept = getDepartmentForUser(user);
             query.setParameter("hodDeptId", dept != null ? dept.getId() : -1L);
@@ -243,7 +246,7 @@ public class ReportServiceImpl implements ReportService {
         if (request.getDepartmentId() != null) query.setParameter("deptId", request.getDepartmentId());
         if (request.getFacultyId() != null) query.setParameter("facultyId", request.getFacultyId());
         
-        if (request.getProjectType() != null) {
+        if (request.getProjectType() != null && !request.getProjectType().trim().isEmpty()) {
             try {
                 query.setParameter("projectType", ProjectType.valueOf(request.getProjectType()));
             } catch (IllegalArgumentException e) {
@@ -251,7 +254,7 @@ public class ReportServiceImpl implements ReportService {
             }
         }
         
-        if (request.getStatus() != null) {
+        if (request.getStatus() != null && !request.getStatus().trim().isEmpty()) {
             // Determine if query is for Project or WorkflowStage
             String queryStr = query.unwrap(org.hibernate.query.Query.class).getQueryString();
             if (queryStr.contains("WorkflowStage ws")) {
@@ -279,9 +282,10 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public byte[] exportPdf(ReportType type, List<?> data) {
-        if (data == null || data.isEmpty()) {
+        if (data == null) {
             throw new ReportDataNotFoundException("No report data available");
         }
+        log.info("exportPdf: report type={}, data size={}", type, data.size());
         try {
             return PdfExportUtil.exportToPdf(type, data);
         } catch (Exception e) {
@@ -292,9 +296,10 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public byte[] exportExcel(ReportType type, List<?> data) {
-        if (data == null || data.isEmpty()) {
+        if (data == null) {
             throw new ReportDataNotFoundException("No report data available");
         }
+        log.info("exportExcel: report type={}, data size={}", type, data.size());
         try {
             return ExcelExportUtil.exportToExcel(type, data);
         } catch (IOException e) {
@@ -305,9 +310,10 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public byte[] exportCsv(ReportType type, List<?> data) {
-        if (data == null || data.isEmpty()) {
+        if (data == null) {
             throw new ReportDataNotFoundException("No report data available");
         }
+        log.info("exportCsv: report type={}, data size={}", type, data.size());
         try {
             return CsvExportUtil.exportToCsv(type, data);
         } catch (IOException e) {
