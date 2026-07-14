@@ -30,6 +30,11 @@ public class DatabaseSeeder implements CommandLineRunner {
         if (userRepository.count() > 0) {
             // Ensure existing students are associated with the seeded faculty guide
             facultyRepository.findByEmail("faculty@pec.edu.in").ifPresent(faculty -> {
+                if (!faculty.isEnabled()) {
+                    faculty.setEnabled(true);
+                    facultyRepository.save(faculty);
+                    System.out.println("Enabled seeded faculty user.");
+                }
                 studentRepository.findAll().forEach(student -> {
                     if (student.getFaculty() == null) {
                         student.setFaculty(faculty);
@@ -87,6 +92,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         faculty.setEmail("faculty@pec.edu.in");
         faculty.setPassword(passwordEncoder.encode("Faculty@123"));
         faculty.setRole(Role.FACULTY);
+        faculty.setEnabled(true);
         faculty.setDesignation("Assistant Professor");
         faculty.setDepartment(cseDept);
 
